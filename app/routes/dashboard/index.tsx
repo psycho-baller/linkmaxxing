@@ -23,7 +23,7 @@ export default function Page() {
     try {
       setIsCreating(true);
       const result = await createConversation({
-        location: "Recording Location",
+        location: "Mount Royal University Library",
       });
       navigate(`/record/${result.id}`);
     } catch (error) {

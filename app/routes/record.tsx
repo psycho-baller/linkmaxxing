@@ -21,7 +21,7 @@ export default function RecordPage() {
     try {
       setIsCreating(true);
       const result = await createConversation({
-        location: "Recording Location", // Could be dynamic
+        location: "Mount Royal University Library",
       });
       navigate(`/record/${result.id}`);
     } catch (error) {

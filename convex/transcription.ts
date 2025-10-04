@@ -55,7 +55,7 @@ export const transcribeAudio = action({
       response_format: "verbose_json",
     });
 
-    // Process segments with Gemini
+    // Process segments with OpenAI
     const segments = (transcription as any).segments || [];
     let segmentText: string;
 
@@ -66,6 +66,8 @@ export const transcribeAudio = action({
     } else {
       segmentText = `[0.00-0.00] ${(transcription as any).text || ""}`;
     }
+    console.log("Transcription:", transcription);
+    console.log("Segment text:", segmentText);
 
     // Process with Vercel AI SDK for structured output
     console.log("Processing transcript with AI...");

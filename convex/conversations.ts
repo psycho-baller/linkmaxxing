@@ -242,7 +242,7 @@ export const list = query({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier.split("|")[1]))
       .unique();
 
     if (!user) {
@@ -259,6 +259,9 @@ export const list = query({
       .query("conversations")
       .withIndex("by_scanner", (q) => q.eq("scannerUserId", user._id))
       .collect();
+
+    console.log("asInitiator", asInitiator);
+    console.log("asScanner", asScanner);
 
     // Combine and sort by creation time
     const all = [...asInitiator, ...asScanner];

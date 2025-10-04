@@ -1,5 +1,6 @@
 import { getAuth } from "@clerk/react-router/ssr.server";
-import { fetchAction, fetchQuery } from "convex/nextjs";
+// import { fetchAction, fetchQuery } from "convex/nextjs";
+
 import ContentSection from "~/components/homepage/content";
 import Footer from "~/components/homepage/footer";
 import Integrations from "~/components/homepage/integrations";
@@ -56,22 +57,22 @@ export async function loader(args: Route.LoaderArgs) {
   const { userId } = await getAuth(args);
 
   // Parallel data fetching to reduce waterfall
-  const [subscriptionData, plans] = await Promise.all([
-    userId
-      ? fetchQuery(api.subscriptions.checkUserSubscriptionStatus, {
-          userId,
-        }).catch((error) => {
-          console.error("Failed to fetch subscription data:", error);
-          return null;
-        })
-      : Promise.resolve(null),
-    fetchAction(api.subscriptions.getAvailablePlans),
-  ]);
+  // const [subscriptionData, plans] = await Promise.all([
+  //   userId
+  //     ? fetchQuery(api.subscriptions.checkUserSubscriptionStatus, {
+  //         userId,
+  //       }).catch((error) => {
+  //         console.error("Failed to fetch subscription data:", error);
+  //         return null;
+  //       })
+  //     : Promise.resolve(null),
+  //   fetchAction(api.subscriptions.getAvailablePlans)
+  // ]);
 
   return {
     isSignedIn: !!userId,
-    hasActiveSubscription: subscriptionData?.hasActiveSubscription || false,
-    plans,
+    hasActiveSubscription: true,//subscriptionData?.hasActiveSubscription || false,
+    plans: undefined
   };
 }
 

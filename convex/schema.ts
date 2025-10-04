@@ -7,7 +7,10 @@ export default defineSchema({
     email: v.optional(v.string()),
     image: v.optional(v.string()),
     tokenIdentifier: v.string(),
-  }).index("by_token", ["tokenIdentifier"]),
+    phoneNumber: v.optional(v.string()),
+  })
+    .index("by_token", ["tokenIdentifier"])
+    .index("by_email", ["email"]),
   subscriptions: defineTable({
     userId: v.optional(v.string()),
     polarId: v.optional(v.string()),
@@ -40,4 +43,40 @@ export default defineSchema({
   })
     .index("type", ["type"])
     .index("polarEventId", ["polarEventId"]),
+  
+  // Conversation-related tables for privacy-first recording platform
+  conversations: defineTable({
+    initiatorUserId: v.id("users"),
+    scannerUserId: v.optional(v.id("users")),
+    scannerEmail: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("active"),
+      v.literal("ended")
+    ),
+    inviteCode: v.string(),
+    location: v.optional(v.string()),
+    startedAt: v.optional(v.number()),
+    endedAt: v.optional(v.number()),
+    summary: v.optional(v.string()),
+    audioStorageId: v.optional(v.id("_storage")),
+  })
+    .index("by_initiator", ["initiatorUserId"])
+    .index("by_scanner", ["scannerUserId"])
+    .index("by_status", ["status"])
+    .index("by_invite_code", ["inviteCode"])
+    .index("by_initiator_and_status", ["initiatorUserId", "status"]),
+  
+  transcriptTurns: defineTable({
+    conversationId: v.id("conversations"),
+    speaker: v.string(),
+    text: v.string(),
+    order: v.number(),
+  }).index("by_conversation_and_order", ["conversationId", "order"]),
+  
+  conversationFacts: defineTable({
+    conversationId: v.id("conversations"),
+    speaker: v.string(),
+    facts: v.array(v.string()),
+  }).index("by_conversation", ["conversationId"]),
 });

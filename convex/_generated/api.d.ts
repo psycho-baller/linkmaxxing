@@ -8,8 +8,10 @@
  * @module
  */
 
+import type * as conversations from "../conversations.js";
 import type * as http from "../http.js";
 import type * as subscriptions from "../subscriptions.js";
+import type * as transcription from "../transcription.js";
 import type * as users from "../users.js";
 
 import type {
@@ -27,8 +29,10 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  conversations: typeof conversations;
   http: typeof http;
   subscriptions: typeof subscriptions;
+  transcription: typeof transcription;
   users: typeof users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

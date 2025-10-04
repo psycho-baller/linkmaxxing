@@ -13,7 +13,7 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import type { Route } from "./+types/root";
 import "./app.css";
-import { Analytics } from "@vercel/analytics/react";
+import { UserSync } from "./components/UserSync";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
@@ -26,7 +26,7 @@ export const links: Route.LinksFunction = () => [
   { rel: "dns-prefetch", href: "https://fonts.gstatic.com" },
   { rel: "dns-prefetch", href: "https://api.convex.dev" },
   { rel: "dns-prefetch", href: "https://clerk.dev" },
-  
+
   // Preconnect to font services
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -34,13 +34,13 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.gstatic.com",
     crossOrigin: "anonymous",
   },
-  
+
   // Font with display=swap for performance
   {
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
-  
+
   // Preload critical assets
   {
     rel: "preload",
@@ -50,11 +50,11 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: "preload",
-    href: "/favicon.png", 
+    href: "/favicon.png",
     as: "image",
     type: "image/png",
   },
-  
+
   // Icon
   {
     rel: "icon",
@@ -73,7 +73,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <Analytics />
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -90,6 +89,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
       signInFallbackRedirectUrl="/"
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        <UserSync />
         <Outlet />
       </ConvexProviderWithClerk>
     </ClerkProvider>

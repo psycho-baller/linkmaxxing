@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import type { Id } from "../../convex/_generated/dataModel";
 import { MoveUpLeft } from "lucide-react";
 import PendingView from "../components/recording/PendingView";
 import CurrentView from "../components/recording/CurrentView";

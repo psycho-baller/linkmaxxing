@@ -1,4 +1,4 @@
-import { IconDashboard, IconSettings, IconMessageCircle } from "@tabler/icons-react";
+import { IconDashboard, IconSettings, IconMessageCircle, IconMessages, IconChartBar } from "@tabler/icons-react";
 import { Link } from "react-router";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
@@ -15,14 +15,19 @@ import {
 const data = {
   navMain: [
     {
-      title: "Dashboard",
+      title: "Conversations",
       url: "/dashboard",
-      icon: IconDashboard,
+      icon: IconMessages,
     },
     {
       title: "Chat",
       url: "/dashboard/chat",
       icon: IconMessageCircle,
+    },
+    {
+      title: "Analytics",
+      url: "/dashboard/analytics",
+      icon: IconChartBar,
     },
   ],
   navSecondary: [

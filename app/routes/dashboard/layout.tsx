@@ -24,9 +24,7 @@ export async function loader(args: Route.LoaderArgs) {
   const users = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY,
   }).users
-  console.log("UserSync: users", users);
   const user = await users.getUser(userId);
-  console.log("UserSync: user", user);
 
   // // Redirect to subscription-required if no active subscription
   // if (!subscriptionStatus?.hasActiveSubscription) {

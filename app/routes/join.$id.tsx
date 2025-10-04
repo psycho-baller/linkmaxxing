@@ -2,7 +2,7 @@ import { useParams, useSearchParams, useNavigate } from "react-router";
 import { useAuth, SignIn } from "@clerk/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import type { Id } from "../../convex/_generated/dataModel";
 import { useEffect, useState } from "react";
 
 export default function JoinPage() {

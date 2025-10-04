@@ -36,6 +36,7 @@ export default function PendingView({
         )}
 
         <div className="text-xs text-gray-400 text-center">
+          <p>url: {qrUrl}</p>
           <p>Invite Code: <span className="font-mono font-bold text-white">{conversation.inviteCode}</span></p>
         </div>
       </div>

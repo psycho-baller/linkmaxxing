@@ -29,7 +29,7 @@ export const create = mutation({
     // Get user from users table
     const user = await ctx.db
       .query("users")
-      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier.split("|")[1]))
       .unique();
 
     if (!user) {
@@ -83,7 +83,7 @@ export const claimScanner = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier.split("|")[1]))
       .unique();
 
     if (!user) {
@@ -134,7 +134,7 @@ export const updateStatus = mutation({
     }
 
     const updates: any = { status: args.status };
-    
+
     if (args.status === "ended" && !conversation.endedAt) {
       updates.endedAt = Date.now();
     }

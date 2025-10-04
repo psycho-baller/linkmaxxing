@@ -56,8 +56,6 @@ export const upsertUser = mutation({
       .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.subject))
       .unique();
 
-    console.log("UserSync: existingUser", existingUser);
-
     if (existingUser) {
       // Update if needed
       if (
@@ -81,8 +79,6 @@ export const upsertUser = mutation({
       image: identity.pictureUrl,
       tokenIdentifier: identity.subject,
     });
-
-    console.log("UserSync: userId", userId);
 
     return await ctx.db.get(userId);
   },

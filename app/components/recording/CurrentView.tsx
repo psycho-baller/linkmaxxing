@@ -1,18 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { Mic, Users, Clock } from "lucide-react";
-import { useMutation, useAction } from "convex/react";
+import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import type { Id } from "../../../convex/_generated/dataModel";
 import BubbleField from "../BubbleField";
 import CircleBlobs from "../CircleBlobs";
-import { useAuth } from "@clerk/react-router";
+import WaitingView from "./WaitingView";
+import { useAuth, useUser } from "@clerk/react-router";
 
 interface CurrentViewProps {
   conversationId: string;
 }
 
 export default function CurrentView({ conversationId }: CurrentViewProps) {
-  const { user } = useAuth();
+  const { userId } = useAuth();
+  const { user } = useUser();
+  
+  // Get current user and conversation data
+  const currentUser = useQuery(api.users.getCurrentUser);
+  const conversation = useQuery(
+    api.conversations.get,
+    { id: conversationId as Id<"conversations"> }
+  );
   const [duration, setDuration] = useState(0);
   const [startTime] = useState<number>(Date.now());
   const [isRecording, setIsRecording] = useState(false);
@@ -27,15 +36,18 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
   const saveAudioStorageId = useMutation(api.conversations.saveAudioStorageId);
   const transcribeAudio = useAction(api.transcription.transcribeAudio);
 
-  // Auto-start recording when component mounts
+  // Check if current user is the scanner (not the initiator)
+  const isScanner = currentUser && conversation && currentUser._id === conversation.scannerUserId;
+
+  // Auto-start recording when component mounts (only for initiator)
   useEffect(() => {
-    if (!autoStarted) {
+    if (!autoStarted && currentUser && conversation && !isScanner) {
       setAutoStarted(true);
       setTimeout(() => {
         startRecording();
       }, 500);
     }
-  }, [autoStarted]);
+  }, [autoStarted, currentUser, conversation, isScanner]);
 
   // Timer for recording duration
   useEffect(() => {
@@ -79,7 +91,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
         try {
           // Upload audio to Convex storage
           const uploadUrl = await generateUploadUrl();
-          
+
           const uploadResult = await fetch(uploadUrl, {
             method: "POST",
             headers: { "Content-Type": audioBlob.type },
@@ -140,7 +152,25 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+  
+  // If loading user or conversation data
+  if (!currentUser || !conversation) {
+    return (
+      <div className="w-full max-w-md flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // If user is the scanner, show waiting view
+  if (isScanner) {
+    return <WaitingView conversationId={conversationId} />;
+  }
 
+  // Otherwise, show recording UI for the initiator
   return (
     <div className="w-full max-w-md space-y-8">
       {/* Main Content - Circle Section */}

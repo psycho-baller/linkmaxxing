@@ -14,17 +14,12 @@ export function UserSync() {
   const upsertUser = useMutation(api.users.upsertUser);
   const syncedRef = useRef(false);
 
-  console.log("UserSync: isSignedIn", isSignedIn);
-
   useEffect(() => {
     // Only sync when signed in and haven't synced yet
-    console.log("UserSync: syncedRef.current", syncedRef.current);
     if (isSignedIn && !syncedRef.current) {
-      console.log("UserSync: syncing");
       upsertUser()
         .then(() => {
           syncedRef.current = true;
-          console.log("User synced to Convex database");
         })
         .catch((error) => {
           console.error("Failed to sync user to Convex:", error);

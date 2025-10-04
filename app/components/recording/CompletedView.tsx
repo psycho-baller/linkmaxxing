@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Play, Pause, Download, Users, Clock } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 interface CompletedViewProps {
   conversationId: string;
@@ -19,7 +19,7 @@ export default function CompletedView({
   const transcriptTurns = useQuery(api.conversations.getTranscript, {
     conversationId: conversationId as Id<"conversations">,
   }) || [];
-  
+
   const conversationFacts = useQuery(api.conversations.getFacts, {
     conversationId: conversationId as Id<"conversations">,
   }) || [];

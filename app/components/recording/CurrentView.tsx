@@ -325,17 +325,17 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           // Process with AI using the real-time transcript
           // S1 = initiator (person who created the call)
           // S2 = scanner (person who scanned the QR code)
-          const result = await processRealtimeTranscript({
-            conversationId: conversationId as Id<"conversations">,
-            transcriptTurns: structuredTranscript,
-            initiatorName: initiatorUser?.name || "Speaker 1",
-            scannerName: scannerUser?.name || "Speaker 2",
-            userEmail: user?.primaryEmailAddress?.emailAddress,
-            userName: user?.fullName || user?.firstName || undefined,
-          });
+          // const result = await processRealtimeTranscript({
+          //   conversationId: conversationId as Id<"conversations">,
+          //   transcriptTurns: structuredTranscript,
+          //   initiatorName: initiatorUser?.name || "Speaker 1",
+          //   scannerName: scannerUser?.name || "Speaker 2",
+          //   userEmail: user?.primaryEmailAddress?.emailAddress,
+          //   userName: user?.fullName || user?.firstName || undefined,
+          // });
 
-          console.log("Real-time processing result:", result);
-          setTranscriptResult(result);
+          // console.log("Real-time processing result:", result);
+          // setTranscriptResult(result);
 
           // Now run batch transcription for more accurate final transcript
           console.log("Starting batch transcription for final accuracy...");

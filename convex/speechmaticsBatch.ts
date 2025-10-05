@@ -75,7 +75,6 @@ export const batchTranscribe = action({
             language: "en",
             operating_point: "enhanced",
             diarization: "speaker",
-            channel_diarization_labels: [args.initiatorUserName, args.scannerUserName],
             speaker_diarization_config: {
               // prefer_current_speaker: true,
               // speaker_sensitivity: 1,

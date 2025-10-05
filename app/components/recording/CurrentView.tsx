@@ -6,16 +6,31 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import BubbleField from "../BubbleField";
 import CircleBlobs from "../CircleBlobs";
 import WaitingView from "./WaitingView";
-import { useAuth, useUser } from "@clerk/react-router";
+import { useUser } from "@clerk/react-router";
+import { RealtimeClient } from "@speechmatics/real-time-client";
+
+interface TranscriptWord {
+  content: string;
+  type: 'word' | 'punctuation';
+  isEos?: boolean;
+  speaker?: string;
+}
+
+interface TranscriptTurn {
+  speaker: string;
+  text: string;
+  startTime: number;
+  endTime: number;
+}
 
 interface CurrentViewProps {
   conversationId: string;
 }
 
 export default function CurrentView({ conversationId }: CurrentViewProps) {
-  const { userId } = useAuth();
+  // const { userId } = useAuth();
   const { user } = useUser();
-  
+
   // Get current user and conversation data
   const currentUser = useQuery(api.users.getCurrentUser);
   const conversation = useQuery(
@@ -29,12 +44,21 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcriptResult, setTranscriptResult] = useState<any>(null);
   const [autoStarted, setAutoStarted] = useState(false);
+  const [realtimeTranscript, setRealtimeTranscript] = useState<string>("");
+  const [currentSentence, setCurrentSentence] = useState<string>("");
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const speechmaticsClientRef = useRef<RealtimeClient | null>(null);
+  const fullTranscriptRef = useRef<string>("");
+  const transcriptTurnsRef = useRef<TranscriptTurn[]>([]);
+  const currentTurnRef = useRef<{ speaker: string; text: string; startTime: number } | null>(null);
 
   const generateUploadUrl = useMutation(api.conversations.generateUploadUrl);
   const saveAudioStorageId = useMutation(api.conversations.saveAudioStorageId);
-  const transcribeAudio = useAction(api.transcription.transcribeAudio);
+  // @ts-ignore - API will be available after convex dev regenerates types
+  const generateSpeechmaticsJWT = useAction(api.speechmatics?.generateJWT);
+  // @ts-ignore - API will be available after convex dev regenerates types
+  const processRealtimeTranscript = useAction(api.realtimeTranscription?.processRealtimeTranscript);
 
   // Check if current user is the scanner (not the initiator)
   const isScanner = currentUser && conversation && currentUser._id === conversation.scannerUserId;
@@ -61,43 +85,196 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
 
   const startRecording = async () => {
     try {
+      // Initialize Speechmatics client
+      const client = new RealtimeClient();
+      speechmaticsClientRef.current = client;
+
+      // Flag to control when to send audio (only after session is ready)
+      let isSessionReady = false;
+
+      // Set up real-time transcript event listeners
+      client.addEventListener("receiveMessage", ({ data }: any) => {
+        if (data.message === "RecognitionStarted") {
+          console.log("Speechmatics session started - ready to receive audio");
+          isSessionReady = true;
+        } else if (data.message === "AddTranscript") {
+          let sentenceBuffer = "";
+          let currentSpeaker: string | undefined;
+          let startTime: number | undefined;
+          let endTime: number | undefined;
+
+          for (const result of data.results) {
+            // Track speaker and timing
+            if (result.start_time !== undefined) {
+              startTime = startTime ?? result.start_time;
+              endTime = result.end_time;
+            }
+
+            // Speaker label from diarization (e.g., "S1", "S2")
+            const speaker = result.alternatives?.[0]?.speaker || "Unknown";
+
+            if (result.type === "word") {
+              sentenceBuffer += " " + result.alternatives?.[0].content;
+              currentSpeaker = speaker;
+            } else if (result.type === "punctuation") {
+              sentenceBuffer += result.alternatives?.[0].content;
+            }
+
+            // End of sentence
+            if (result.is_eos) {
+              const completeSentence = sentenceBuffer.trim();
+              const speakerLabel = currentSpeaker || "Unknown";
+
+              // Save turn with speaker label
+              if (completeSentence && startTime !== undefined && endTime !== undefined) {
+                // Check if we need to merge with previous turn (same speaker)
+                const lastTurn = transcriptTurnsRef.current[transcriptTurnsRef.current.length - 1];
+                if (lastTurn && lastTurn.speaker === speakerLabel && (startTime - lastTurn.endTime) < 2) {
+                  // Merge with previous turn if same speaker and < 2s gap
+                  lastTurn.text += " " + completeSentence;
+                  lastTurn.endTime = endTime;
+                } else {
+                  // Create new turn
+                  transcriptTurnsRef.current.push({
+                    speaker: speakerLabel,
+                    text: completeSentence,
+                    startTime: startTime,
+                    endTime: endTime,
+                  });
+                }
+              }
+
+              fullTranscriptRef.current += (fullTranscriptRef.current ? " " : "") + completeSentence;
+              setRealtimeTranscript(fullTranscriptRef.current);
+              setCurrentSentence("");
+              sentenceBuffer = "";
+              startTime = undefined;
+              endTime = undefined;
+            }
+          }
+
+          // Update current sentence being spoken
+          if (sentenceBuffer) {
+            const speakerLabel = currentSpeaker || "Unknown";
+            setCurrentSentence(`[${speakerLabel}] ${sentenceBuffer.trim()}`);
+          }
+        } else if (data.message === "EndOfTranscript") {
+          console.log("Speechmatics: End of transcript");
+          console.log("Final structured transcript:", transcriptTurnsRef.current);
+        } else if (data.message === "Error") {
+          console.error("Speechmatics error:", data);
+        }
+      });
+
+      // Get JWT from Convex
+      console.log("Getting Speechmatics JWT...");
+      const jwt = await generateSpeechmaticsJWT();
+
+      // Get microphone stream first
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
-      const recorder = new MediaRecorder(stream);
+      // Set up AudioContext to stream to Speechmatics
+      // Use browser's native sample rate (typically 48kHz) - Speechmatics supports it
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+
+      console.log(`AudioContext sample rate: ${audioContext.sampleRate}Hz`);
+
+      // Process audio - but only send when session is ready
+      processor.onaudioprocess = (e) => {
+        if (!isSessionReady) return; // Don't send until Speechmatics is ready
+
+        const inputData = e.inputBuffer.getChannelData(0);
+        // Convert Float32Array to Int16Array for Speechmatics
+        const pcmData = new Int16Array(inputData.length);
+        for (let i = 0; i < inputData.length; i++) {
+          pcmData[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32768));
+        }
+        client.sendAudio(pcmData.buffer);
+      };
+
+      // Start Speechmatics session (will trigger RecognitionStarted event)
+      console.log("Starting Speechmatics session...");
+      await client.start(jwt, {
+        transcription_config: {
+          language: "en",
+          operating_point: "enhanced",
+          max_delay: 1.0,
+          enable_partials: true,
+          // conversation_config: {
+          //   end_of_utterance_silence_trigger: 0.5,
+          // },
+          diarization: "speaker", // Enable speaker diarization
+          speaker_diarization_config: {
+            max_speakers: 2, // Expecting 2 speakers in conversation
+          },
+          transcript_filtering_config: {
+            remove_disfluencies: true,
+          },
+        },
+        audio_format: {
+          type: "raw",
+          encoding: "pcm_s16le",
+          sample_rate: audioContext.sampleRate,
+        },
+      });
+
+      // Create MediaRecorder for audio archival
+      const recorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm",
+      });
       setMediaRecorder(recorder);
 
-      // Clear previous audio chunks
+      // Clear previous audio chunks and transcript data
       audioChunksRef.current = [];
+      fullTranscriptRef.current = "";
+      transcriptTurnsRef.current = [];
+      setRealtimeTranscript("");
+      setCurrentSentence("");
 
+      // Collect audio chunks for storage
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
 
+      // Handle recording stop
       recorder.onstop = async () => {
-        // Create audio blob from collected chunks
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
-        });
+        // Stop audio processing
+        processor.disconnect();
+        source.disconnect();
+        audioContext.close();
 
-        // Clean up
+        // Stop Speechmatics
+        if (speechmaticsClientRef.current) {
+          speechmaticsClientRef.current.stopRecognition();
+        }
+
+        // Clean up microphone
         stream.getTracks().forEach((track) => track.stop());
         setIsRecording(false);
 
-        // Process transcript
+        // Process and save to Convex
         setIsProcessing(true);
         try {
+          // Create audio blob from collected chunks
+          const audioBlob = new Blob(audioChunksRef.current, {
+            type: "audio/webm",
+          });
+
           // Upload audio to Convex storage
           const uploadUrl = await generateUploadUrl();
-
           const uploadResult = await fetch(uploadUrl, {
             method: "POST",
             headers: { "Content-Type": audioBlob.type },
             body: audioBlob,
           });
-
           const { storageId } = await uploadResult.json();
 
           // Save storage ID
@@ -106,16 +283,23 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
             storageId,
           });
 
-          // Transcribe audio
-          console.log("Transcribing audio...");
-          const result = await transcribeAudio({
-            storageId,
+          // Use the structured transcript from Speechmatics with speaker labels
+          const structuredTranscript = transcriptTurnsRef.current;
+          console.log("Final structured transcript with speakers:", structuredTranscript);
+
+          if (structuredTranscript.length === 0) {
+            throw new Error("No transcript data collected");
+          }
+
+          // Process with AI using the real-time transcript
+          const result = await processRealtimeTranscript({
             conversationId: conversationId as Id<"conversations">,
+            transcriptTurns: structuredTranscript,
             userEmail: user?.primaryEmailAddress?.emailAddress,
             userName: user?.fullName || user?.firstName || undefined,
           });
 
-          console.log("Transcript result:", result);
+          console.log("Processing result:", result);
           setTranscriptResult(result);
         } catch (error) {
           console.error("Error processing transcript:", error);
@@ -125,11 +309,12 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
         }
       };
 
-      recorder.start();
+      // Start recording
+      recorder.start(1000); // Collect chunks every second
       setIsRecording(true);
     } catch (error) {
-      console.error("Error accessing microphone:", error);
-      alert("Unable to access microphone. Please check permissions.");
+      console.error("Error starting recording:", error);
+      alert("Unable to start recording. Please check permissions and try again.");
     }
   };
 
@@ -152,7 +337,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
-  
+
   // If loading user or conversation data
   if (!currentUser || !conversation) {
     return (
@@ -164,11 +349,14 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
       </div>
     );
   }
-  
+
   // If user is the scanner, show waiting view
   if (isScanner) {
     return <WaitingView conversationId={conversationId} />;
   }
+
+  console.log("realtimeTranscript", realtimeTranscript);
+  console.log("currentSentence", currentSentence);
 
   // Otherwise, show recording UI for the initiator
   return (
@@ -236,6 +424,21 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           </div>
         </div>
       </div>
+
+      {/* Real-time Transcript Display */}
+      {isRecording && (realtimeTranscript || currentSentence) && (
+        <div className="bg-[#353E41] rounded-2xl p-4 w-full space-y-3 max-h-48 overflow-y-auto">
+          <h3 className="text-sm font-medium text-gray-400 mb-2">Live Transcript</h3>
+          <div className="text-sm text-white space-y-2">
+            {realtimeTranscript && (
+              <p className="text-gray-200">{realtimeTranscript}</p>
+            )}
+            {currentSentence && (
+              <p className="text-blue-300 italic">{currentSentence}...</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Recording Stats */}
       <div className="bg-[#353E41] rounded-2xl p-4 w-full space-y-3">

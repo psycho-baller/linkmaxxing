@@ -10,6 +10,8 @@
 
 import type * as conversations from "../conversations.js";
 import type * as http from "../http.js";
+import type * as realtimeTranscription from "../realtimeTranscription.js";
+import type * as speechmatics from "../speechmatics.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as transcription from "../transcription.js";
 import type * as users from "../users.js";
@@ -31,6 +33,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   conversations: typeof conversations;
   http: typeof http;
+  realtimeTranscription: typeof realtimeTranscription;
+  speechmatics: typeof speechmatics;
   subscriptions: typeof subscriptions;
   transcription: typeof transcription;
   users: typeof users;

@@ -89,7 +89,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
       signInFallbackRedirectUrl="/"
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        <UserSync />
+        {/* <UserSync /> */}
         <Outlet />
       </ConvexProviderWithClerk>
     </ClerkProvider>

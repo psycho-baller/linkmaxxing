@@ -1,6 +1,7 @@
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { SidebarTrigger } from "~/components/ui/sidebar";
+import { ThemeToggle } from "../ThemeToggle";
 
 export function SiteHeader() {
   return (
@@ -14,7 +15,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
-              href="https://github.com/michaelshimeles/react-starter-kit"
+              href="https://github.com/psycho-baller/mru-hacks"
               rel="noopener noreferrer"
               target="_blank"
               className="dark:text-foreground"
@@ -22,6 +23,7 @@ export function SiteHeader() {
               GitHub
             </a>
           </Button>
+          <ThemeToggle />
         </div>
       </div>
     </header>

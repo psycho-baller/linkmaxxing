@@ -14,6 +14,8 @@ import { ConvexProviderWithClerk } from "convex/react-clerk";
 import type { Route } from "./+types/root";
 import "./app.css";
 import { UserSync } from "./components/UserSync";
+import { ThemeProvider } from "./components/ThemeProvider";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
@@ -89,8 +91,11 @@ export default function App({ loaderData }: Route.ComponentProps) {
       signInFallbackRedirectUrl="/"
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        {/* <UserSync /> */}
-        <Outlet />
+        <ThemeProvider defaultTheme="system" storageKey="orbit-theme">
+          {/* <UserSync /> */}
+          {/* <ThemeToggle /> */}
+          <Outlet />
+        </ThemeProvider>
       </ConvexProviderWithClerk>
     </ClerkProvider>
   );

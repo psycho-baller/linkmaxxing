@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from "react";
-import { Mic, Users, Clock } from "lucide-react";
-import { useMutation, useAction, useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { Clock, Mic, Users } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import type { Id } from "../../../convex/_generated/dataModel";
-import BubbleField from "../BubbleField";
-import CircleBlobs from "../CircleBlobs";
-import WaitingView from "./WaitingView";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { useUser } from "@clerk/react-router";
 import { RealtimeClient } from "@speechmatics/real-time-client";
+import WaitingView from "./WaitingView";
+import BubbleField from "../BubbleField";
+import CircleBlobs from "../CircleBlobs";
 
 interface TranscriptWord {
   content: string;
@@ -444,12 +444,12 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
         <div className="flex flex-col items-center">
           {/* Record Circle */}
           <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
-            {/* White aura / glow */}
+            {/* Aura / glow */}
             {isRecording && (
               <div
                 className="absolute inset-0 rounded-full"
                 style={{
-                  boxShadow: "0 0 30px 15px rgba(255,255,255,0.5)",
+                  boxShadow: "0 0 30px 15px rgba(129, 140, 248, 0.5)",
                   animation: "pulseAura 1.5s infinite alternate",
                 }}
               />
@@ -460,16 +460,16 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
               onClick={handleRecordClick}
               disabled={isProcessing}
               className={`relative w-32 h-32 rounded-full flex items-center justify-center transition-all cursor-pointer
-                ${isRecording ? "bg-white/80" : "bg-gray-300"}
-                ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}>
+                ${isRecording ? "bg-primary/20 dark:bg-primary/30" : "bg-muted dark:bg-card"}
+                ${isProcessing ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/30 dark:hover:bg-primary/40"}`}>
               {isProcessing ? (
-                <div className="w-6 h-6 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               ) : isRecording ? (
                 <div className="">
                   <CircleBlobs isRecording={true} onClick={handleRecordClick} />
                 </div>
               ) : (
-                <Mic className="w-8 h-8 text-gray-700" />
+                <Mic className="w-8 h-8 text-primary" />
               )}
             </button>
           </div>
@@ -478,10 +478,10 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           <style>{`
             @keyframes pulseAura {
               0% {
-                box-shadow: 0 0 5px 5px rgba(255, 255, 255, 0.4);
+                box-shadow: 0 0 5px 5px rgba(129, 140, 248, 0.4);
               }
               100% {
-                box-shadow: 0 0 15px 10px rgba(255, 255, 255, 0.6);
+                box-shadow: 0 0 15px 10px rgba(129, 140, 248, 0.6);
               }
             }
           `}</style>
@@ -489,7 +489,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           {/* Status text */}
           <div className="text-center mb-6">
             <p
-              className="text-gray-300 text-lg"
+              className="text-muted-foreground text-lg"
               style={{ fontFamily: "Simonetta, serif" }}>
               {isProcessing
                 ? "Processing..."
@@ -503,35 +503,35 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
 
       {/* Real-time Transcript Display */}
       {isRecording && (displayTranscriptTurns.length > 0 || currentSentence) && (
-        <div className="bg-[#353E41] rounded-2xl p-6 w-full">
-          <h3 className="text-sm font-medium text-gray-400 mb-4">Live Transcript</h3>
+        <div className="bg-card border border-border rounded-2xl p-6 w-full shadow-lg">
+          <h3 className="text-sm font-medium text-muted-foreground mb-4">Live Transcript</h3>
           <div className="space-y-4 max-h-64 overflow-y-auto">
             {displayTranscriptTurns.map((turn, index) => (
               <div key={index} className="flex space-x-3">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xs font-medium text-white">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-xs font-medium text-primary-foreground">
                     {turn.speaker.charAt(0)}
                   </div>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
-                    <span className="text-sm font-medium text-gray-200">
+                    <span className="text-sm font-medium text-foreground">
                       {turn.speaker}
                     </span>
                   </div>
-                  <p className="text-gray-300 text-sm leading-relaxed">{turn.text}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{turn.text}</p>
                 </div>
               </div>
             ))}
             {currentSentence && (
               <div className="flex space-x-3">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center text-xs font-medium text-white animate-pulse">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 dark:from-green-400 dark:to-teal-400 flex items-center justify-center text-xs font-medium text-white animate-pulse">
                     {currentSentence.match(/\[(.+?)\]/)?.[1]?.charAt(0) || "?"}
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-blue-300 text-sm italic">{currentSentence}...</p>
+                  <p className="text-primary text-sm italic">{currentSentence}...</p>
                 </div>
               </div>
             )}
@@ -540,23 +540,22 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
       )}
 
       {/* Recording Stats */}
-      <div className="bg-[#353E41] rounded-2xl p-4 w-full space-y-3">
+      <div className="bg-card border border-border rounded-2xl p-4 w-full space-y-3 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-300">Duration</span>
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Duration</span>
           </div>
-          <span className="text-lg font-mono text-white">
+          <span className="text-sm font-medium text-foreground">
             {formatDuration(duration)}
           </span>
         </div>
-
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-300">Participants</span>
+            <Users className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Participants</span>
           </div>
-          <span className="text-sm text-white">2 active</span>
+          <span className="text-sm text-foreground">2 active</span>
         </div>
       </div>
 

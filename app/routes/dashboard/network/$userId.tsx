@@ -232,7 +232,7 @@ export default function ContactDetailPage() {
                     <span className="text-sm">Your Contributions</span>
                   </div>
                   <p className="text-2xl font-bold text-foreground">{stats.currentUserTurns}</p>
-                  <p className="text-xs text-muted-foreground mt-1">transcript turns</p>
+                  <p className="text-xs text-muted-foreground mt-1">exchanges</p>
                 </div>
 
                 <div className="rounded-xl border border-border bg-card p-4">
@@ -241,7 +241,7 @@ export default function ContactDetailPage() {
                     <span className="text-sm">Their Contributions</span>
                   </div>
                   <p className="text-2xl font-bold text-foreground">{stats.contactTurns}</p>
-                  <p className="text-xs text-muted-foreground mt-1">transcript turns</p>
+                  <p className="text-xs text-muted-foreground mt-1">exchanges</p>
                 </div>
               </div>
 

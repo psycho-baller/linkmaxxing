@@ -224,3 +224,71 @@ export const consolidateConversationFacts = mutation({
     };
   },
 });
+
+/**
+ * Migration: Remove duplicate transcript turns
+ * Fixes duplicate transcript entries caused by calling processRealtimeTranscript twice
+ */
+export const removeDuplicateTranscriptTurns = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Get all conversations
+    const allConversations = await ctx.db.query("conversations").collect();
+    
+    console.log(`Found ${allConversations.length} conversations to check for duplicates`);
+    
+    let conversationsFixed = 0;
+    let turnsDeleted = 0;
+    
+    for (const conversation of allConversations) {
+      // Get all transcript turns for this conversation
+      const turns = await ctx.db
+        .query("transcriptTurns")
+        .withIndex("by_conversation_and_order", (q) => q.eq("conversationId", conversation._id))
+        .collect();
+      
+      if (turns.length === 0) {
+        continue;
+      }
+      
+      // Sort by order
+      turns.sort((a, b) => a.order - b.order);
+      
+      // Track seen content to identify duplicates
+      const seen = new Map<string, Id<"transcriptTurns">>();
+      const duplicates: Id<"transcriptTurns">[] = [];
+      
+      for (const turn of turns) {
+        // Create a unique key from order, userId, and text
+        const key = `${turn.order}|${turn.userId}|${turn.text}`;
+        
+        if (seen.has(key)) {
+          // This is a duplicate
+          duplicates.push(turn._id);
+        } else {
+          seen.set(key, turn._id);
+        }
+      }
+      
+      // Delete duplicates
+      if (duplicates.length > 0) {
+        console.log(`Conversation ${conversation._id}: Deleting ${duplicates.length} duplicate turns out of ${turns.length} total`);
+        
+        for (const duplicateId of duplicates) {
+          await ctx.db.delete(duplicateId);
+          turnsDeleted++;
+        }
+        
+        conversationsFixed++;
+      }
+    }
+    
+    console.log(`Migration complete: Fixed ${conversationsFixed} conversations, deleted ${turnsDeleted} duplicate turns`);
+    
+    return {
+      total: allConversations.length,
+      conversationsFixed,
+      turnsDeleted,
+    };
+  },
+});

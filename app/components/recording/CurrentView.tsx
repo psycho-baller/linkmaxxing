@@ -332,24 +332,8 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           if (structuredTranscript.length === 0) {
             throw new Error("No transcript data collected");
           }
-
-          // Process with AI using the real-time transcript
-          // S1 = initiator (person who created the call)
-          // S2 = scanner (person who scanned the QR code)
-          const result = await processRealtimeTranscript({
-            conversationId: conversationId as Id<"conversations">,
-            transcriptTurns: structuredTranscript,
-            initiatorName: initiatorUser?.name || "Speaker 1",
-            scannerName: scannerUser?.name || "Speaker 2",
-            userEmail: user?.primaryEmailAddress?.emailAddress,
-            userName: user?.fullName || user?.firstName || undefined,
-          });
-
-          console.log("Real-time processing result:", result);
-          setTranscriptResult(result);
-
           // Now run batch transcription for more accurate final transcript
-          console.log("Starting batch transcription for final accuracy...");
+          // console.log("Starting batch transcription for final accuracy...");
           try {
             // const batchResult = await batchTranscribe({
             //   storageId,
@@ -370,7 +354,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
               userName: user?.fullName || user?.firstName || undefined,
             });
 
-            console.log("Final batch transcript with names:", batchTranscriptWithNames);
+            console.log("Final realtime transcript with names:", batchTranscriptWithNames);
             // Update UI with the more accurate batch result
             setTranscriptResult(batchTranscriptWithNames);
           } catch (batchError) {

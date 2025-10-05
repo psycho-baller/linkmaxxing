@@ -69,10 +69,13 @@ export default defineSchema({
 
   transcriptTurns: defineTable({
     conversationId: v.id("conversations"),
-    speaker: v.string(),
+    userId: v.id("users"),
     text: v.string(),
     order: v.number(),
-  }).index("by_conversation_and_order", ["conversationId", "order"]),
+  })
+    .index("by_conversation_and_order", ["conversationId", "order"])
+    .index("by_user", ["userId"])
+    .index("by_conversation_and_user", ["conversationId", "userId"]),
 
   conversationFacts: defineTable({
     conversationId: v.id("conversations"),
@@ -81,4 +84,59 @@ export default defineSchema({
   })
     .index("by_conversation", ["conversationId"])
     .index("by_user", ["userId"]),
+
+  // Speech Analytics for each user in a conversation
+  speechAnalytics: defineTable({
+    conversationId: v.id("conversations"),
+    userId: v.id("users"),
+    // Filler word metrics
+    fillerWords: v.object({
+      count: v.number(),
+      ratePerMinute: v.number(),
+      instances: v.array(v.object({
+        word: v.string(),
+        position: v.number(),
+      })),
+    }),
+    // Pacing metrics
+    pacing: v.object({
+      wordsPerMinute: v.number(),
+      averagePauseDuration: v.optional(v.number()),
+      longestPause: v.optional(v.number()),
+    }),
+    // Repetition metrics
+    repetitions: v.object({
+      repeatedWords: v.array(v.object({
+        word: v.string(),
+        count: v.number(),
+      })),
+      repeatedPhrases: v.array(v.object({
+        phrase: v.string(),
+        count: v.number(),
+      })),
+    }),
+    // Sentence starters
+    sentenceStarters: v.object({
+      total: v.number(),
+      weak: v.array(v.object({
+        word: v.string(),
+        count: v.number(),
+      })),
+    }),
+    // Weak words
+    weakWords: v.array(v.object({
+      word: v.string(),
+      sentence: v.string(),
+      suggestion: v.optional(v.string()),
+    })),
+    // Overall scores
+    scores: v.object({
+      clarity: v.number(), // 0-100
+      conciseness: v.number(), // 0-100
+      confidence: v.number(), // 0-100
+    }),
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_user", ["userId"])
+    .index("by_user_and_conversation", ["userId", "conversationId"]),
 });

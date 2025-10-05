@@ -16,7 +16,7 @@ export default function PendingView({
   useEffect(() => {
     // Generate QR URL
     const baseUrl = window.location.origin;
-    const url = `${baseUrl}/join/${conversationId}?code=${conversation.inviteCode}`;
+    const url = `${baseUrl}/dashboard/join/${conversationId}?code=${conversation.inviteCode}`;
     setQrUrl(url);
   }, [conversationId, conversation.inviteCode]);
 

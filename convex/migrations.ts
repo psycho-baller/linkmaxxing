@@ -1,4 +1,5 @@
 import { mutation } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 /**
  * Migration: Add userId to conversationFacts and remove speaker field
@@ -51,6 +52,101 @@ export const migrateConversationFacts = mutation({
       total: allFacts.length,
       migrated,
       skipped,
+    };
+  },
+});
+
+/**
+ * Migration: Replace speaker field with userId in transcriptTurns
+ * This migrates old transcriptTurns records to use userId instead of speaker name
+ */
+export const migrateTranscriptTurnsToUserId = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Get all transcript turns
+    const allTurns = (await ctx.db.query("transcriptTurns").collect()) as any[];
+    
+    console.log(`Found ${allTurns.length} transcript turns to migrate`);
+    
+    let migrated = 0;
+    let skipped = 0;
+    let errors = 0;
+    
+    for (const turn of allTurns) {
+      // Check if already migrated (has userId and no speaker field)
+      if (turn.userId && !('speaker' in turn)) {
+        skipped++;
+        continue;
+      }
+      
+      // Get the conversation to determine the correct userId
+      const conversation = await ctx.db.get(turn.conversationId);
+      
+      if (!conversation || conversation === null) {
+        console.error(`Conversation ${turn.conversationId} not found for turn ${turn._id}`);
+        errors++;
+        continue;
+      }
+      
+      // Type guard to ensure we have a conversations document
+      if (!('initiatorUserId' in conversation)) {
+        console.error(`Conversation ${turn.conversationId} is not a valid conversation`);
+        errors++;
+        continue;
+      }
+      
+      let userId: Id<"users">;
+      
+      // If the speaker field looks like a userId (starts with right prefix), use it
+      // Otherwise, try to match it to a user or default to initiator
+      if (turn.speaker && typeof turn.speaker === 'string') {
+        // Check if it's already a userId format
+        if (turn.speaker.startsWith('j') || turn.speaker.startsWith('k')) {
+          userId = turn.speaker as Id<"users">;
+        } else {
+          // Speaker is a name - try to match to initiator or scanner
+          // Default to initiator for now
+          userId = conversation.initiatorUserId;
+          
+          // If there's a scanner and this might be them, use scanner
+          if (conversation.scannerUserId) {
+            // Simple heuristic: if we have multiple speakers, alternate or use order
+            const allTurnsInConvo = allTurns.filter(t => t.conversationId === turn.conversationId);
+            const speakerNames = Array.from(new Set(allTurnsInConvo.map(t => t.speaker)));
+            
+            // If this is the second unique speaker, assume it's the scanner
+            if (speakerNames.length > 1 && turn.speaker === speakerNames[1]) {
+              userId = conversation.scannerUserId;
+            }
+          }
+        }
+      } else {
+        // No speaker field, default to initiator
+        userId = conversation.initiatorUserId;
+      }
+      
+      // Replace the document with new schema
+      await ctx.db.replace(turn._id, {
+        conversationId: turn.conversationId,
+        userId,
+        text: turn.text,
+        order: turn.order,
+      });
+      
+      migrated++;
+      
+      if (migrated % 100 === 0) {
+        console.log(`Migrated ${migrated} turns so far...`);
+      }
+    }
+    
+    console.log(`Migration complete: ${migrated} migrated, ${skipped} skipped, ${errors} errors`);
+    
+    return {
+      total: allTurns.length,
+      migrated,
+      skipped,
+      errors,
     };
   },
 });

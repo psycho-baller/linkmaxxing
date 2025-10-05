@@ -148,7 +148,7 @@ export const updateStatus = mutation({
 export const saveTranscriptData = mutation({
   args: {
     conversationId: v.id("conversations"),
-    transcript: v.array(v.object({ speaker: v.string(), text: v.string() })),
+    transcript: v.array(v.object({ userId: v.id("users"), text: v.string() })),
     S1_facts: v.array(v.string()),
     S2_facts: v.array(v.string()),
     initiatorName: v.optional(v.string()),
@@ -179,7 +179,7 @@ export const saveTranscriptData = mutation({
     for (let i = 0; i < args.transcript.length; i++) {
       await ctx.db.insert("transcriptTurns", {
         conversationId: args.conversationId,
-        speaker: args.transcript[i].speaker,
+        userId: args.transcript[i].userId,
         text: args.transcript[i].text,
         order: i,
       });
@@ -326,7 +326,8 @@ export const getTranscript = query({
       _id: v.id("transcriptTurns"),
       _creationTime: v.number(),
       conversationId: v.id("conversations"),
-      speaker: v.string(),
+      userId: v.optional(v.id("users")),
+      speaker: v.optional(v.string()),
       text: v.string(),
       order: v.number(),
     })

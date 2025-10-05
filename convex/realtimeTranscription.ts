@@ -3,14 +3,14 @@
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
-import { Id } from "./_generated/dataModel";
-import { generateObject } from "ai";
+import type { Id } from "./_generated/dataModel";
 import { openai as openaiProvider } from "@ai-sdk/openai";
+import { generateObject } from "ai";
 import { z } from "zod";
 import { ZepClient } from "@getzep/zep-cloud";
 
 const zepClient = new ZepClient({
-  apiKey: process.env.ZEP_API_KEY!,
+  apiKey: process.env.ZEP_API_KEY || "",
 });
 
 const GRAPH_ID = process.env.ZEP_GRAPH_ID || "all_users_htn";
@@ -39,22 +39,42 @@ export const processRealtimeTranscript = action({
     transcript: v.array(v.object({ speaker: v.string(), text: v.string() })),
     S1_facts: v.array(v.string()),
     S2_facts: v.array(v.string()),
-    summary: v.string(),
   }),
   handler: async (ctx, args) => {
     console.log("Processing real-time transcript with speaker labels...");
     console.log(`Received ${args.transcriptTurns.length} conversation turns`);
 
-    // Map S1 to initiator, S2 to scanner
+    // Get conversation to access user IDs
+    const conversation = await ctx.runQuery(api.conversations.get, {
+      id: args.conversationId,
+    });
+    if (!conversation) {
+      throw new Error("Conversation not found");
+    }
+
+    // Map S1 to initiator userId, S2 to scanner userId
+    const speakerToUserIdMap: Record<string, Id<"users">> = {
+      S1: conversation.initiatorUserId as Id<"users">,
+      S2: (conversation.scannerUserId || conversation.initiatorUserId) as Id<"users">,
+    };
+
+    // Map for display names (for AI processing)
     const speakerMap: Record<string, string> = {
-      "S1": args.initiatorName || "Speaker 1",
-      "S2": args.scannerName || "Speaker 2",
-      "Unknown": "Unknown Speaker",
+      S1: args.initiatorName || "S1",
+      S2: args.scannerName || "S2",
     };
 
     console.log("Speaker mapping:", speakerMap);
+    console.log("Speaker to userId mapping:", speakerToUserIdMap);
 
-    // Convert transcript turns with actual names
+    // Convert transcript turns with userIds for storage
+    const transcriptWithUserIds = args.transcriptTurns.map(turn => ({
+      speaker: turn.speaker,
+      userId: (speakerToUserIdMap[turn.speaker] || conversation.initiatorUserId) as Id<"users">,
+      text: turn.text,
+    }));
+
+    // Convert transcript turns with actual names for AI analysis
     const transcript = args.transcriptTurns.map(turn => ({
       speaker: speakerMap[turn.speaker] || turn.speaker,
       text: turn.text,
@@ -117,10 +137,10 @@ Provide:
     }
 
     // Save to Convex database
-    // Use original Speechmatics transcript + AI-generated facts and summary
+    // Use transcript with userIds for storage
     await ctx.runMutation(api.conversations.saveTranscriptData, {
       conversationId: args.conversationId,
-      transcript: transcript,
+      transcript: transcriptWithUserIds,
       S1_facts: aiAnalysis.S1_facts,
       S2_facts: aiAnalysis.S2_facts,
       initiatorName: args.initiatorName,

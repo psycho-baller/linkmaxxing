@@ -36,7 +36,7 @@ export default function JoinPage() {
       setClaimed(true);
       // Redirect to conversation page
       setTimeout(() => {
-        navigate(`/conversations/${id}`);
+        navigate(`/dashboard/conversations/${id}`);
       }, 1000);
     } catch (err: any) {
       console.error("Failed to claim scanner:", err);
@@ -70,7 +70,7 @@ export default function JoinPage() {
           <SignIn
             routing="hash"
             signUpUrl="/sign-up"
-            afterSignInUrl={`/join/${id}?code=${code}`}
+            afterSignInUrl={`dashboard/join/${id}?code=${code}`}
           />
         </div>
       </div>

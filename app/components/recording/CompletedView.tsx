@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Play, Pause, Download, Users, Clock, TrendingUp, Sparkles } from "lucide-react";
+import { Play, Pause, Download, Users, Clock, TrendingUp, Sparkles, Phone, Loader2 } from "lucide-react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import SpeechAnalytics from "../analytics/SpeechAnalytics";
 import { Button } from "../ui/button";
+import { PhoneNumberDialog } from "../network/PhoneNumberDialog";
 
 interface CompletedViewProps {
   conversationId: string;
@@ -20,6 +21,9 @@ export default function CompletedView({
   const [showAnalytics, setShowAnalytics] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
+  const [showPhoneDialog, setShowPhoneDialog] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+  const [otherParticipantId, setOtherParticipantId] = useState<Id<"users"> | null>(null);
 
   // Get current user
   const currentUser = useQuery(api.users.getCurrentUser);
@@ -46,6 +50,16 @@ export default function CompletedView({
   const conversationAnalytics = useQuery(api.analytics.getConversationAnalytics, {
     conversationId: conversationId as Id<"conversations">,
   }) || [];
+
+  // Get other participant's phone number
+  // @ts-ignore - VAPI types will be available after convex dev
+  const otherParticipantPhone = useQuery(
+    api.vapi?.getPhoneNumber,
+    otherParticipantId ? { userId: otherParticipantId } : "skip"
+  );
+
+  // @ts-ignore - VAPI types will be available after convex dev
+  const initiateCallAction = useAction(api.vapi?.initiateCall);
 
   // Filter analytics and facts to only show current user's data
   const currentUserAnalytics = conversationAnalytics.filter(
@@ -127,6 +141,16 @@ export default function CompletedView({
     new Set(transcriptTurns.map((turn) => turn.userId))
   );
 
+  // Determine the other participant (not current user)
+  useEffect(() => {
+    if (currentUser && userIds.length > 0) {
+      const otherId = userIds.find(id => id !== currentUser._id);
+      if (otherId) {
+        setOtherParticipantId(otherId as Id<"users">);
+      }
+    }
+  }, [currentUser, userIds]);
+
   // Get current user's facts only
   const currentUserFactsList = currentUserFacts.length > 0 ? currentUserFacts[0].facts : [];
 
@@ -143,6 +167,35 @@ export default function CompletedView({
       return scannerUser.name || "Speaker 2";
     }
     return "Unknown";
+  };
+
+  const handleCallClick = () => {
+    if (otherParticipantPhone) {
+      // Phone number exists, initiate call directly
+      handleInitiateCall();
+    } else {
+      // No phone number, show dialog
+      setShowPhoneDialog(true);
+    }
+  };
+
+  const handleInitiateCall = async (newPhoneNumber?: string) => {
+    if (!otherParticipantId) return;
+
+    setIsCalling(true);
+    try {
+      const result = await initiateCallAction({
+        contactUserId: otherParticipantId,
+        phoneNumber: newPhoneNumber,
+      });
+
+      alert(`Call initiated successfully! Call ID: ${result.callId}`);
+    } catch (error: any) {
+      console.error("Call failed:", error);
+      alert(`Failed to initiate call: ${error.message}`);
+    } finally {
+      setIsCalling(false);
+    }
   };
 
   const handleDownload = () => {
@@ -192,9 +245,29 @@ export default function CompletedView({
     <div className="w-full space-y-6 pb-8">
       {/* Header */}
       <div className="bg-card border border-border rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h2 className="text-xl font-semibold text-foreground">Conversation Complete</h2>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-wrap">
+            {otherParticipantId && (
+              <Button
+                onClick={handleCallClick}
+                disabled={isCalling}
+                size="sm"
+                variant="default"
+                className="gap-2">
+                {isCalling ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Calling...
+                  </>
+                ) : (
+                  <>
+                    <Phone className="w-4 h-4" />
+                    Reflect on conversation with {getUserName(otherParticipantId)}
+                  </>
+                )}
+              </Button>
+            )}
             <button
               onClick={handlePlayPause}
               className="p-2 bg-primary hover:bg-primary/90 rounded-lg transition-colors">
@@ -344,6 +417,16 @@ export default function CompletedView({
             ))}
           </ul>
         </div>
+      )}
+
+      {/* Phone Number Dialog */}
+      {otherParticipantId && (
+        <PhoneNumberDialog
+          open={showPhoneDialog}
+          onOpenChange={setShowPhoneDialog}
+          contactName={getUserName(otherParticipantId)}
+          onSubmit={handleInitiateCall}
+        />
       )}
     </div>
   );

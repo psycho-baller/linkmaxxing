@@ -436,7 +436,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
 
   // Otherwise, show recording UI for the initiator
   return (
-    <div className="w-full max-w-md space-y-8">
+    <div className="w-full max-w-md mx-auto space-y-8">
       {/* Main Content - Circle Section */}
       <div className="flex items-center justify-center px-6">
         <BubbleField isRecording={isRecording} />

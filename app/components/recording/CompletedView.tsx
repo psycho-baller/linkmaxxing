@@ -101,25 +101,25 @@ export default function CompletedView({
   };
 
   return (
-    <div className="w-full max-w-4xl space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-[#353E41] rounded-2xl p-6">
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Conversation Complete</h2>
+          <h2 className="text-xl font-semibold text-foreground">Conversation Complete</h2>
           <div className="flex items-center space-x-2">
             <button
               onClick={handlePlayPause}
-              className="p-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors">
+              className="p-2 bg-primary hover:bg-primary/90 rounded-lg transition-colors">
               {isPlaying ? (
-                <Pause className="w-4 h-4 text-white" />
+                <Pause className="w-4 h-4 text-primary-foreground" />
               ) : (
-                <Play className="w-4 h-4 text-white" />
+                <Play className="w-4 h-4 text-primary-foreground" />
               )}
             </button>
             <button
               onClick={handleDownload}
-              className="p-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">
-              <Download className="w-4 h-4 text-white" />
+              className="p-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors">
+              <Download className="w-4 h-4 text-foreground" />
             </button>
           </div>
         </div>
@@ -127,45 +127,39 @@ export default function CompletedView({
         {/* Conversation Stats */}
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div className="flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-300">{calculateDuration()}</span>
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">{calculateDuration()}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-300">{speakers.length} participants</span>
+            <Users className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">{speakers.length} speakers</span>
+          </div>
+          <div className="text-muted-foreground">
+            {formatDate(conversation._creationTime)}
           </div>
         </div>
       </div>
 
-      {/* Summary */}
-      {conversation.summary && (
-        <div className="bg-[#353E41] rounded-2xl p-6">
-          <h3 className="text-lg font-medium mb-3">Summary</h3>
-          <p className="text-gray-300 leading-relaxed">{conversation.summary}</p>
-        </div>
-      )}
-
       {/* Speaker Filter */}
-      {speakers.length > 1 && (
-        <div className="flex items-center space-x-2 flex-wrap">
-          <span className="text-sm text-gray-400">Filter by speaker:</span>
+      {speakers.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setSelectedSpeaker(null)}
-            className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+            className={`px-4 py-2 rounded-lg transition-colors ${
               selectedSpeaker === null
-                ? "bg-blue-500 text-white"
-                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}>
-            All
+            All Speakers
           </button>
           {speakers.map((speaker) => (
             <button
               key={speaker}
               onClick={() => setSelectedSpeaker(speaker)}
-              className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+              className={`px-4 py-2 rounded-lg transition-colors ${
                 selectedSpeaker === speaker
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}>
               {speaker}
             </button>

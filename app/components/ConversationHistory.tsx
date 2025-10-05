@@ -62,7 +62,7 @@ export default function ConversationHistory({
           {conversations.map((conversation) => (
             <div
               key={conversation._id}
-              onClick={() => navigate(`/record/${conversation._id}`)}
+              onClick={() => navigate(`conversations/${conversation._id}`)}
               className="bg-[#353E41] rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:bg-slate-600 transition-colors">
               <div className="flex flex-col">
                 <h3

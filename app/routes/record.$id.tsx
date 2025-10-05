@@ -37,7 +37,7 @@ export default function ConversationPage() {
         <div className="text-center">
           <p className="text-red-400 mb-4">Conversation not found</p>
           <button
-            onClick={() => navigate("/record")}
+            onClick={() => navigate("/dashboard")}
             className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg">
             Go Back
           </button>
@@ -62,7 +62,7 @@ export default function ConversationPage() {
   return (
     <div className="h-screen bg-gradient-to-b from-[#343D40] to-[#131519] text-white flex flex-col">
       <button
-        onClick={() => navigate("/record")}
+        onClick={() => navigate("/dashboard")}
         className="w-[30px] h-[30px] mt-5 ml-5 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100/10 transition-colors">
         <MoveUpLeft className="w-4 h-4 text-white" />
       </button>

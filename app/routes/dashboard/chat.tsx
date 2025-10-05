@@ -40,8 +40,8 @@ export default function Chat() {
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-foreground">AI Assistant</h1>
-              <p className="text-xs text-muted-foreground">Powered by Convex AI</p>
+              <h1 className="text-lg font-semibold text-foreground">Communication Coach</h1>
+              <p className="text-xs text-muted-foreground">Your Personal Reflection & Relationship Expert</p>
             </div>
           </div>
         </div>
@@ -55,9 +55,30 @@ export default function Chat() {
               <div className="p-4 rounded-full bg-primary/10 mb-4">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">Start a Conversation</h2>
-              <p className="text-muted-foreground max-w-md">
-                Ask me anything about your conversations, get insights, or chat about anything else.
+              <h2 className="text-xl font-semibold text-foreground mb-2">Let's Reflect Together</h2>
+              <p className="text-muted-foreground max-w-md mb-4">
+                I'm your communication coach and reflection expert. I have access to all your conversations and can help you:
+              </p>
+              <ul className="text-muted-foreground text-sm space-y-2 max-w-md text-left">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Analyze your communication patterns and style</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Reflect on specific conversations and what you learned</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Discover insights about your relationships</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Get personalized coaching to improve your connections</span>
+                </li>
+              </ul>
+              <p className="text-muted-foreground text-sm max-w-md mt-4">
+                Ask me anything about your conversations or how to connect better with others.
               </p>
             </div>
           ) : (

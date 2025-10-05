@@ -115,7 +115,7 @@ export const Navbar = ({
               </div>
               <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
                 <Link
-                  to="https://github.com/michaelshimeles/react-starter-kit"
+                  to="https://github.com/psycho-baller/mru-2025"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center"

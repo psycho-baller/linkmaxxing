@@ -104,6 +104,12 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
       // Flag to control when to send audio (only after session is ready)
       let isSessionReady = false;
 
+      // Persistent buffer for building sentences across multiple AddTranscript events
+      let sentenceBuffer = "";
+      let currentSpeaker: string | undefined;
+      let sentenceStartTime: number | undefined;
+      let sentenceEndTime: number | undefined;
+
       // Set up real-time transcript event listeners
       client.addEventListener("receiveMessage", ({ data }: any) => {
         if (data.message === "RecognitionStarted") {
@@ -112,18 +118,13 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
         } else if (data.message === "AddTranscript") {
           console.log("AddTranscript event received:", JSON.stringify(data, null, 2));
 
-          let sentenceBuffer = "";
-          let currentSpeaker: string | undefined;
-          let startTime: number | undefined;
-          let endTime: number | undefined;
-
           for (const result of data.results) {
             console.log("Processing result:", result);
 
             // Track speaker and timing
             if (result.start_time !== undefined) {
-              startTime = startTime ?? result.start_time;
-              endTime = result.end_time;
+              sentenceStartTime = sentenceStartTime ?? result.start_time;
+              sentenceEndTime = result.end_time;
             }
 
             // Speaker label from diarization (e.g., "S1", "S2")
@@ -136,7 +137,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
               sentenceBuffer += " " + content;
               currentSpeaker = speaker;
             } else if (result.type === "punctuation") {
-              // sentenceBuffer += content;
+              sentenceBuffer += content;
             }
 
             // End of sentence
@@ -144,21 +145,23 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
               const completeSentence = sentenceBuffer.trim();
               const speakerLabel = currentSpeaker || "Unknown";
 
+              console.log(`Complete sentence: [${speakerLabel}] "${completeSentence}"`);
+
               // Save turn with speaker label
-              if (completeSentence && startTime !== undefined && endTime !== undefined) {
+              if (completeSentence && sentenceStartTime !== undefined && sentenceEndTime !== undefined) {
                 // Check if we need to merge with previous turn (same speaker)
                 const lastTurn = transcriptTurnsRef.current[transcriptTurnsRef.current.length - 1];
-                if (lastTurn && lastTurn.speaker === speakerLabel && (startTime - lastTurn.endTime) < 2) {
+                if (lastTurn && lastTurn.speaker === speakerLabel && (sentenceStartTime - lastTurn.endTime) < 2) {
                   // Merge with previous turn if same speaker and < 2s gap
                   lastTurn.text += " " + completeSentence;
-                  lastTurn.endTime = endTime;
+                  lastTurn.endTime = sentenceEndTime;
                 } else {
                   // Create new turn
                   transcriptTurnsRef.current.push({
                     speaker: speakerLabel,
                     text: completeSentence,
-                    startTime: startTime,
-                    endTime: endTime,
+                    startTime: sentenceStartTime,
+                    endTime: sentenceEndTime,
                   });
                 }
               }
@@ -166,14 +169,17 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
               fullTranscriptRef.current += (fullTranscriptRef.current ? " " : "") + completeSentence;
               setRealtimeTranscript(fullTranscriptRef.current);
               setCurrentSentence("");
+              
+              // Reset buffers for next sentence
               sentenceBuffer = "";
-              startTime = undefined;
-              endTime = undefined;
+              currentSpeaker = undefined;
+              sentenceStartTime = undefined;
+              sentenceEndTime = undefined;
             }
           }
 
-          // Update current sentence being spoken
-          if (sentenceBuffer) {
+          // Update current sentence being spoken (in progress)
+          if (sentenceBuffer.trim()) {
             const speakerLabel = currentSpeaker || "Unknown";
             setCurrentSentence(`[${speakerLabel}] ${sentenceBuffer.trim()}`);
           }

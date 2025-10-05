@@ -153,3 +153,149 @@ export const list = query({
     return results;
   },
 });
+
+// Get detailed information about a specific contact
+export const getContactDetails = query({
+  args: { contactId: v.id("users") },
+  returns: v.union(
+    v.object({
+      contact: v.object({
+        _id: v.id("users"),
+        name: v.optional(v.string()),
+        email: v.optional(v.string()),
+        image: v.optional(v.string()),
+      }),
+      conversations: v.array(
+        v.object({
+          _id: v.id("conversations"),
+          _creationTime: v.number(),
+          status: v.union(v.literal("pending"), v.literal("active"), v.literal("ended")),
+          startedAt: v.optional(v.number()),
+          endedAt: v.optional(v.number()),
+          summary: v.optional(v.string()),
+          location: v.optional(v.string()),
+        })
+      ),
+      sharedFacts: v.object({
+        currentUserFacts: v.array(v.string()),
+        contactFacts: v.array(v.string()),
+      }),
+      stats: v.object({
+        totalConversations: v.number(),
+        totalDuration: v.number(), // in milliseconds
+        currentUserTurns: v.number(),
+        contactTurns: v.number(),
+      }),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args) => {
+    const currentUser = await getCurrentUser(ctx);
+    if (!currentUser) {
+      return null;
+    }
+
+    // Get contact user info
+    const contact = await ctx.db.get(args.contactId);
+    if (!contact) {
+      return null;
+    }
+
+    // Get all conversations between current user and contact
+    const [asInitiator, asScanner] = await Promise.all([
+      ctx.db
+        .query("conversations")
+        .withIndex("by_initiator", (q) => q.eq("initiatorUserId", currentUser._id))
+        .collect(),
+      ctx.db
+        .query("conversations")
+        .withIndex("by_scanner", (q) => q.eq("scannerUserId", currentUser._id))
+        .collect(),
+    ]);
+
+    // Filter to only conversations with the specific contact
+    const allConversations = [...asInitiator, ...asScanner];
+    const conversationsWithContact = allConversations.filter(
+      (conv) =>
+        conv.initiatorUserId === args.contactId ||
+        conv.scannerUserId === args.contactId
+    );
+
+    // Sort by most recent first
+    conversationsWithContact.sort((a, b) => {
+      const aTime = a.endedAt ?? a.startedAt ?? a._creationTime;
+      const bTime = b.endedAt ?? b.startedAt ?? b._creationTime;
+      return bTime - aTime;
+    });
+
+    // Get shared facts from all conversations
+    const currentUserFactsSet = new Set<string>();
+    const contactFactsSet = new Set<string>();
+    let totalDuration = 0;
+    let currentUserTurns = 0;
+    let contactTurns = 0;
+
+    for (const conversation of conversationsWithContact) {
+      // Calculate duration
+      if (conversation.startedAt && conversation.endedAt) {
+        totalDuration += conversation.endedAt - conversation.startedAt;
+      }
+
+      // Get facts
+      const facts = await ctx.db
+        .query("conversationFacts")
+        .withIndex("by_conversation", (q) => q.eq("conversationId", conversation._id))
+        .collect();
+
+      for (const fact of facts) {
+        if (fact.userId === currentUser._id) {
+          fact.facts.forEach((f) => currentUserFactsSet.add(f));
+        } else if (fact.userId === args.contactId) {
+          fact.facts.forEach((f) => contactFactsSet.add(f));
+        }
+      }
+
+      // Get turn counts
+      const turns = await ctx.db
+        .query("transcriptTurns")
+        .withIndex("by_conversation_and_order", (q) => q.eq("conversationId", conversation._id))
+        .collect();
+
+      for (const turn of turns) {
+        if (turn.userId === currentUser._id) {
+          currentUserTurns++;
+        } else if (turn.userId === args.contactId) {
+          contactTurns++;
+        }
+      }
+    }
+
+    return {
+      contact: {
+        _id: contact._id,
+        name: contact.name ?? undefined,
+        email: contact.email ?? undefined,
+        image: contact.image ?? undefined,
+      },
+      conversations: conversationsWithContact.map((conv) => ({
+        _id: conv._id,
+        _creationTime: conv._creationTime,
+        status: conv.status,
+        startedAt: conv.startedAt ?? undefined,
+        endedAt: conv.endedAt ?? undefined,
+        summary: conv.summary ?? undefined,
+        location: conv.location ?? undefined,
+      })),
+      sharedFacts: {
+        currentUserFacts: Array.from(currentUserFactsSet),
+        contactFacts: Array.from(contactFactsSet),
+      },
+      stats: {
+        totalConversations: conversationsWithContact.length,
+        totalDuration,
+        currentUserTurns,
+        contactTurns,
+      },
+    };
+  },
+});

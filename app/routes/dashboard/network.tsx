@@ -50,9 +50,9 @@ function getInitials(name?: string | null, email?: string | null) {
 }
 
 function formatInteractions(count: number) {
-  if (count <= 0) return "No transcript turns yet";
-  if (count === 1) return "1 transcript turn";
-  return `${count} transcript turns`;
+  if (count <= 0) return "No exchanges yet";
+  if (count === 1) return "1 exchange";
+  return `${count} exchanges`;
 }
 
 export default function NetworkPage() {
@@ -62,8 +62,8 @@ export default function NetworkPage() {
   const isLoading = connections === undefined;
   const sortedConnections = useMemo(() => connections ?? [], [connections]);
 
-  const handleOpenConversation = (conversationId: string) => {
-    navigate(`/record/${conversationId}`);
+  const handleOpenContact = (contactId: string) => {
+    navigate(`/dashboard/network/${contactId}`);
   };
 
   return (
@@ -109,7 +109,7 @@ export default function NetworkPage() {
                   <button
                     type="button"
                     key={connection.contactId}
-                    onClick={() => handleOpenConversation(connection.lastConversationId)}
+                    onClick={() => handleOpenContact(connection.contactId)}
                     className="group flex flex-col gap-4 rounded-xl border border-border bg-card/60 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">

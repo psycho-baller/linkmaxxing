@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { PhoneNumberDialog } from "~/components/network/PhoneNumberDialog";
+import { toast } from "sonner";
 import {
   Loader2,
   ArrowLeft,
@@ -110,10 +111,10 @@ export default function ContactDetailPage() {
         phoneNumber: newPhoneNumber,
       });
 
-      alert(`Call initiated successfully! Call ID: ${result.callId}`);
+      toast.success(`Call initiated successfully with ${result.phoneNumber}`);
     } catch (error: any) {
       console.error("Call failed:", error);
-      alert(`Failed to initiate call: ${error.message}`);
+      toast.error(`Failed to initiate call: ${error.message}`);
     } finally {
       setIsCalling(false);
     }

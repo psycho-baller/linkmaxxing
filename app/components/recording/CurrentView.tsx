@@ -8,6 +8,7 @@ import { RealtimeClient } from "@speechmatics/real-time-client";
 import WaitingView from "./WaitingView";
 import BubbleField from "../BubbleField";
 import CircleBlobs from "../CircleBlobs";
+import { toast } from "sonner";
 
 interface TranscriptWord {
   content: string;
@@ -363,7 +364,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           }
         } catch (error) {
           console.error("Error processing transcript:", error);
-          alert("Error processing recording. Please try again.");
+          toast.error("Error processing recording. Please try again.");
         } finally {
           setIsProcessing(false);
         }
@@ -374,7 +375,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
       setIsRecording(true);
     } catch (error) {
       console.error("Error starting recording:", error);
-      alert("Unable to start recording. Please check permissions and try again.");
+      toast.error("Unable to start recording. Please check permissions and try again.");
     }
   };
 

@@ -8,6 +8,7 @@ import ConversationHistory from "../../components/ConversationHistory";
 import { Users, Phone, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
+import { toast } from "sonner";
 
 export default function Page() {
   const { isSignedIn } = useAuth();
@@ -29,7 +30,7 @@ export default function Page() {
       navigate(`/dashboard/conversations/${result.id}`);
     } catch (error) {
       console.error("Failed to create conversation:", error);
-      alert("Failed to start recording. Please try again.");
+      toast.error("Failed to start recording. Please try again.");
     } finally {
       setIsCreating(false);
     }

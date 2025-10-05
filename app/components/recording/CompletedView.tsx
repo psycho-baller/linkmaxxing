@@ -6,6 +6,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import SpeechAnalytics from "../analytics/SpeechAnalytics";
 import { Button } from "../ui/button";
 import { PhoneNumberDialog } from "../network/PhoneNumberDialog";
+import { toast } from "sonner";
 
 interface CompletedViewProps {
   conversationId: string;
@@ -65,7 +66,7 @@ export default function CompletedView({
   const currentUserAnalytics = conversationAnalytics.filter(
     (analytics) => currentUser && analytics.userId === currentUser._id
   );
-  
+
   const currentUserFacts = conversationFacts.filter(
     (fact) => currentUser && fact.userId === currentUser._id
   );
@@ -189,10 +190,10 @@ export default function CompletedView({
         phoneNumber: newPhoneNumber,
       });
 
-      alert(`Call initiated successfully! Call ID: ${result.callId}`);
+      toast.success(`Call initiated successfully with ${result.phoneNumber}`);
     } catch (error: any) {
       console.error("Call failed:", error);
-      alert(`Failed to initiate call: ${error.message}`);
+      toast.error(`Failed to initiate call: ${error.message}`);
     } finally {
       setIsCalling(false);
     }

@@ -14,10 +14,16 @@ import { ConvexProviderWithClerk } from "convex/react-clerk";
 import type { Route } from "./+types/root";
 import "./app.css";
 import { UserSync } from "./components/UserSync";
-import { ThemeProvider } from "./components/ThemeProvider";
+import { ThemeProvider, useTheme } from "./components/ThemeProvider";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { Toaster } from "sonner";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+
+function ThemedToaster() {
+  const { theme } = useTheme();
+  return <Toaster position="top-center" theme={theme} richColors />;
+}
 
 export async function loader(args: Route.LoaderArgs) {
   return rootAuthLoader(args);
@@ -94,6 +100,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
         <ThemeProvider defaultTheme="system" storageKey="orbit-theme">
           {/* <UserSync /> */}
           {/* <ThemeToggle /> */}
+          <ThemedToaster />
           <Outlet />
         </ThemeProvider>
       </ConvexProviderWithClerk>

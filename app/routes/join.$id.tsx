@@ -69,8 +69,8 @@ export default function JoinPage() {
         <div className="max-w-md w-full">
           <SignIn
             routing="hash"
-            signUpUrl="/sign-up"
-            afterSignInUrl={`dashboard/join/${id}?code=${code}`}
+            signUpUrl={`/sign-up?redirect_url=${encodeURIComponent(`/join/${id}?code=${code}`)}`}
+            fallbackRedirectUrl={`/join/${id}?code=${code}`}
           />
         </div>
       </div>

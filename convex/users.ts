@@ -54,6 +54,7 @@ export const upsertUser = mutation({
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
+      console.error("No identity found");
       return null;
     }
 
@@ -64,6 +65,7 @@ export const upsertUser = mutation({
       .unique();
 
     if (existingUser) {
+      console.log("User already exists");
       // Update if needed
       if (
         existingUser.name !== identity.name ||
@@ -79,6 +81,7 @@ export const upsertUser = mutation({
       return existingUser;
     }
 
+    console.log("User does not exist, creating...");
     // Create new user
     const userId = await ctx.db.insert("users", {
       name: identity.name,
@@ -87,7 +90,10 @@ export const upsertUser = mutation({
       tokenIdentifier: identity.subject,
     });
 
-    return await ctx.db.get(userId);
+    console.log("User created");
+    const user = await ctx.db.get(userId);
+    console.log("User created", user);
+    return user;
   },
 });
 

@@ -69,7 +69,6 @@ export const processRealtimeTranscript = action({
 
     // Convert transcript turns with userIds for storage
     const transcriptWithUserIds = args.transcriptTurns.map(turn => ({
-      speaker: turn.speaker,
       userId: (speakerToUserIdMap[turn.speaker] || conversation.initiatorUserId) as Id<"users">,
       text: turn.text,
     }));

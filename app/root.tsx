@@ -93,12 +93,12 @@ export default function App({ loaderData }: Route.ComponentProps) {
   return (
     <ClerkProvider
       loaderData={loaderData}
-      signUpFallbackRedirectUrl="/"
-      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/dashboard"
+      signInFallbackRedirectUrl="/dashboard"
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <ThemeProvider defaultTheme="system" storageKey="orbit-theme">
-          {/* <UserSync /> */}
+          <UserSync />
           {/* <ThemeToggle /> */}
           <ThemedToaster />
           <Outlet />

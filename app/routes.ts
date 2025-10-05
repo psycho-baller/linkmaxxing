@@ -20,5 +20,7 @@ export default [
     route("dashboard/analytics", "routes/dashboard/analytics.tsx"),
     route("dashboard/chat", "routes/dashboard/chat.tsx"),
     route("dashboard/settings", "routes/dashboard/settings.tsx"),
+    route("dashboard/network", "routes/dashboard/network.tsx"),
+    route("dashboard/network/:userId", "routes/dashboard/network/$userId.tsx"),
   ]),
 ] satisfies RouteConfig;

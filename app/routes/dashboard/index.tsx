@@ -83,7 +83,7 @@ export default function Page() {
         <div className="px-4 py-3">
           <div className="flex items-center justify-around gap-2">
             <a
-              href="/network"
+              href="/dashboard/network"
               className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted transition-colors">
               <Users className="w-5 h-5 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Network</span>

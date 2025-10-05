@@ -12,6 +12,7 @@ import type * as analytics from "../analytics.js";
 import type * as conversations from "../conversations.js";
 import type * as http from "../http.js";
 import type * as migrations from "../migrations.js";
+import type * as network from "../network.js";
 import type * as realtimeTranscription from "../realtimeTranscription.js";
 import type * as speechmatics from "../speechmatics.js";
 import type * as speechmaticsBatch from "../speechmaticsBatch.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   conversations: typeof conversations;
   http: typeof http;
   migrations: typeof migrations;
+  network: typeof network;
   realtimeTranscription: typeof realtimeTranscription;
   speechmatics: typeof speechmatics;
   speechmaticsBatch: typeof speechmaticsBatch;

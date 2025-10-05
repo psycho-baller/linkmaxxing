@@ -7,8 +7,8 @@ export default function SignInPage() {
 
   return (
     <div className="flex items-center justify-center h-screen">
-      <SignIn 
-        afterSignInUrl={redirectUrl || undefined}
+      <SignIn
+        fallbackRedirectUrl={redirectUrl || undefined}
         signUpUrl={redirectUrl ? `/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}` : undefined}
       />
     </div>

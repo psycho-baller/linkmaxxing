@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import ConversationHistory from "../../components/ConversationHistory";
-import { Users, Phone, Loader2, Plus } from "lucide-react";
+import { Users, Phone, Loader2, Plus, Upload } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
@@ -50,23 +50,34 @@ export default function Page() {
                 Welcome back! Start a new conversation or view your history
               </p>
             </div>
-            <Button
-              onClick={handleStartRecording}
-              disabled={isCreating}
-              size="lg"
-              className="w-full sm:w-auto">
-              {isCreating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Conversation
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                onClick={() => navigate("/dashboard/import")}
+                disabled={isCreating}
+                size="lg"
+                variant="outline"
+                className="flex-1 sm:flex-none">
+                <Upload className="w-4 h-4 mr-2" />
+                Import Audio
+              </Button>
+              <Button
+                onClick={handleStartRecording}
+                disabled={isCreating}
+                size="lg"
+                className="flex-1 sm:flex-none">
+                {isCreating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Conversation
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

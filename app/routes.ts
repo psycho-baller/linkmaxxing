@@ -16,6 +16,7 @@ export default [
     route("dashboard", "routes/dashboard/index.tsx"),
     route("dashboard/conversations", "routes/record.tsx"),
     route("dashboard/conversations/:id", "routes/record.$id.tsx"),
+    route("dashboard/import", "routes/dashboard/import.tsx"),
     route("dashboard/join/:id", "routes/join.$id.tsx"),
     route("dashboard/analytics", "routes/dashboard/analytics.tsx"),
     route("dashboard/chat", "routes/dashboard/chat.tsx"),

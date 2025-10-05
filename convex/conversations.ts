@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, action } from "./_generated/server";
 
 // Generate a random invite code
 function generateInviteCode(): string {
@@ -387,5 +387,154 @@ export const saveAudioStorageId = mutation({
       audioStorageId: args.storageId,
     });
     return null;
+  },
+});
+
+// Link conversation with a specific friend (for imports)
+export const linkConversationToFriend = mutation({
+  args: {
+    conversationId: v.id("conversations"),
+    friendId: v.id("users"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation) {
+      throw new Error("Conversation not found");
+    }
+
+    // Get friend's details
+    const friend = await ctx.db.get(args.friendId);
+    if (!friend) {
+      throw new Error("Friend not found");
+    }
+
+    // Update conversation with friend as scanner
+    await ctx.db.patch(args.conversationId, {
+      scannerUserId: args.friendId,
+      scannerEmail: friend.email,
+      status: "active",
+    });
+
+    return null;
+  },
+});
+
+// Import text transcript (dev mode only)
+// Parses a text file with format: SPEAKER: S1\nText\nSPEAKER: S2\nText...
+export const importTextTranscript = action({
+  args: {
+    conversationId: v.id("conversations"),
+    textContent: v.string(),
+    initiatorName: v.optional(v.string()),
+    scannerName: v.optional(v.string()),
+  },
+  returns: v.object({
+    transcript: v.array(v.object({ speaker: v.string(), text: v.string() })),
+    S1_facts: v.array(v.string()),
+    S2_facts: v.array(v.string()),
+    summary: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    console.log("Processing text transcript import (dev mode)");
+
+    // Parse the text content
+    const lines = args.textContent.split('\n');
+    const transcript: Array<{ speaker: string; text: string }> = [];
+    let currentSpeaker = '';
+    let currentText = '';
+
+    for (const line of lines) {
+      const speakerMatch = line.match(/^SPEAKER:\s*(S[12])$/i);
+      
+      if (speakerMatch) {
+        // Save previous turn if exists
+        if (currentSpeaker && currentText.trim()) {
+          transcript.push({
+            speaker: currentSpeaker,
+            text: currentText.trim(),
+          });
+        }
+        // Start new turn
+        currentSpeaker = speakerMatch[1].toUpperCase();
+        currentText = '';
+      } else if (line.trim() && currentSpeaker) {
+        // Add to current text
+        if (currentText) currentText += ' ';
+        currentText += line.trim();
+      }
+    }
+
+    // Save last turn
+    if (currentSpeaker && currentText.trim()) {
+      transcript.push({
+        speaker: currentSpeaker,
+        text: currentText.trim(),
+      });
+    }
+
+    if (transcript.length === 0) {
+      throw new Error("No valid transcript found in text file");
+    }
+
+    console.log(`Parsed ${transcript.length} turns from text file`);
+
+    // Format for AI analysis
+    const speakerMap: Record<string, string> = {
+      S1: args.initiatorName || "S1",
+      S2: args.scannerName || "S2",
+    };
+
+    const formattedTranscript = transcript
+      .map(turn => `${speakerMap[turn.speaker] || turn.speaker}: ${turn.text}`)
+      .join("\n");
+
+    // Use AI for facts extraction and summary generation
+    const { openai } = await import("@ai-sdk/openai");
+    const { generateObject } = await import("ai");
+    const { z } = await import("zod");
+
+    const { object: aiAnalysis } = await generateObject({
+      model: openai("gpt-4o"),
+      schema: z.object({
+        S1_facts: z.array(z.string()).describe(`Facts extracted for ${speakerMap["S1"]}`).default([]),
+        S2_facts: z.array(z.string()).describe(`Facts extracted for ${speakerMap["S2"]}`).default([]),
+        summary: z.string().describe("Brief summary of the conversation").default(""),
+      }),
+      prompt: `You are an AI assistant that analyzes conversation transcripts to extract key facts and generate summaries.
+
+SPEAKERS:
+- ${speakerMap["S1"]}: The person who initiated the conversation
+- ${speakerMap["S2"]}: The person who joined the conversation
+
+REQUIREMENTS:
+- Extract only explicit, concrete facts directly stated by each person
+- Do not include questions, opinions, or interpretations in facts
+- Facts should be organized by speaker name
+- Use the actual speaker names provided above as keys in the facts object
+- Generate a concise summary of key points and outcomes
+
+TRANSCRIPT:
+${formattedTranscript}
+
+Provide:
+1. S1_facts: Key facts extracted for ${args.initiatorName || "Speaker 1"}
+2. S2_facts: Key facts extracted for ${args.scannerName || "Speaker 2"}
+3. summary: Concise summary of key points and outcomes`,
+    });
+
+    console.log("AI analysis complete:", aiAnalysis);
+
+    return {
+      transcript,
+      S1_facts: aiAnalysis.S1_facts,
+      S2_facts: aiAnalysis.S2_facts,
+      summary: aiAnalysis.summary,
+    };
   },
 });

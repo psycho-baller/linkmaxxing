@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { PhoneNumberDialog } from "~/components/network/PhoneNumberDialog";
+import ConnectionGraph from "~/components/network/ConnectionGraph";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -244,6 +245,14 @@ export default function ContactDetailPage() {
                   <p className="text-2xl font-bold text-foreground">{stats.contactTurns}</p>
                   <p className="text-xs text-muted-foreground mt-1">exchanges</p>
                 </div>
+              </div>
+
+              {/* Network Graph */}
+              <div className="rounded-xl border border-border bg-card p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4">
+                  Your Connection Network
+                </h2>
+                <ConnectionGraph />
               </div>
 
               {/* Conversations List */}

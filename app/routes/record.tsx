@@ -15,7 +15,7 @@ export default function RecordPage() {
   const [isCreating, setIsCreating] = useState(false);
 
   if (!isSignedIn) {
-    const redirectUrl = encodeURIComponent(window.location.href);
+    const redirectUrl = typeof window !== "undefined" ? encodeURIComponent(window.location.href) : "";
     console.log("Redirecting to sign-in with URL:", redirectUrl);
     navigate(`/sign-in?redirect_url=${redirectUrl}`);
     return null;

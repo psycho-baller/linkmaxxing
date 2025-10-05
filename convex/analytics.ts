@@ -373,3 +373,137 @@ export const updateWeakWordSuggestions = mutation({
     });
   },
 });
+
+// Get comprehensive dashboard data for current user
+export const getUserDashboard = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return null;
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) =>
+        q.eq("tokenIdentifier", identity.tokenIdentifier.split("|")[1])
+      )
+      .unique();
+
+    if (!user) {
+      return null;
+    }
+
+    // Get all conversations
+    const conversationsAsInitiator = await ctx.db
+      .query("conversations")
+      .withIndex("by_initiator", (q) => q.eq("initiatorUserId", user._id))
+      .filter((q) => q.neq(q.field("status"), "pending"))
+      .collect();
+
+    const conversationsAsScanner = await ctx.db
+      .query("conversations")
+      .withIndex("by_scanner", (q) => q.eq("scannerUserId", user._id))
+      .filter((q) => q.neq(q.field("status"), "pending"))
+      .collect();
+
+    const allConversations = [...conversationsAsInitiator, ...conversationsAsScanner]
+      .sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
+
+    // Get all analytics for user
+    const allAnalytics = await ctx.db
+      .query("speechAnalytics")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Calculate aggregate stats
+    const totalConversations = allConversations.length;
+    const completedConversations = allConversations.filter(c => c.status === "ended").length;
+    
+    // Average scores
+    const avgClarity = allAnalytics.length > 0
+      ? Math.round(allAnalytics.reduce((sum, a) => sum + a.scores.clarity, 0) / allAnalytics.length)
+      : 0;
+    const avgConciseness = allAnalytics.length > 0
+      ? Math.round(allAnalytics.reduce((sum, a) => sum + a.scores.conciseness, 0) / allAnalytics.length)
+      : 0;
+    const avgConfidence = allAnalytics.length > 0
+      ? Math.round(allAnalytics.reduce((sum, a) => sum + a.scores.confidence, 0) / allAnalytics.length)
+      : 0;
+
+    // Total speaking time and words
+    let totalWords = 0;
+    let totalMinutes = 0;
+    for (const conv of allConversations) {
+      if (conv.startedAt && conv.endedAt) {
+        totalMinutes += (conv.endedAt - conv.startedAt) / 60000;
+      }
+      const turns = await ctx.db
+        .query("transcriptTurns")
+        .withIndex("by_conversation_and_user", (q) =>
+          q.eq("conversationId", conv._id).eq("userId", user._id)
+        )
+        .collect();
+      totalWords += turns.reduce((sum, t) => sum + t.text.split(/\s+/).length, 0);
+    }
+
+    // Recent performance trend (last 10 conversations)
+    const recentAnalytics = allAnalytics.slice(0, 10).reverse();
+    const performanceTrend = recentAnalytics.map((a, idx) => ({
+      conversation: idx + 1,
+      clarity: a.scores.clarity,
+      conciseness: a.scores.conciseness,
+      confidence: a.scores.confidence,
+    }));
+
+    // Top repeated words across all conversations
+    const allFacts = await ctx.db
+      .query("conversationFacts")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    
+    const wordFrequency: Record<string, number> = {};
+    allFacts.forEach(cf => {
+      cf.facts.forEach(fact => {
+        const words = fact.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+        words.forEach(word => {
+          wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+        });
+      });
+    });
+
+    const topKeywords = Object.entries(wordFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([word, count]) => ({ word, count }));
+
+    // Filler word trends
+    const fillerTrend = allAnalytics.slice(0, 10).reverse().map((a, idx) => ({
+      conversation: idx + 1,
+      count: a.fillerWords.count,
+      rate: Math.round(a.fillerWords.ratePerMinute * 10) / 10,
+    }));
+
+    return {
+      overview: {
+        totalConversations,
+        completedConversations,
+        totalWords,
+        totalMinutes: Math.round(totalMinutes),
+        avgClarity,
+        avgConciseness,
+        avgConfidence,
+      },
+      performanceTrend,
+      fillerTrend,
+      topKeywords,
+      recentConversations: allConversations.slice(0, 10).map(c => ({
+        id: c._id,
+        location: c.location,
+        startedAt: c.startedAt,
+        endedAt: c.endedAt,
+        status: c.status,
+      })),
+    };
+  },
+});

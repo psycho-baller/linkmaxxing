@@ -18,6 +18,7 @@ import type * as speechmatics from "../speechmatics.js";
 import type * as speechmaticsBatch from "../speechmaticsBatch.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as transcription from "../transcription.js";
+import type * as userConnections from "../userConnections.js";
 import type * as users from "../users.js";
 import type * as vapi from "../vapi.js";
 
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   speechmaticsBatch: typeof speechmaticsBatch;
   subscriptions: typeof subscriptions;
   transcription: typeof transcription;
+  userConnections: typeof userConnections;
   users: typeof users;
   vapi: typeof vapi;
 }>;

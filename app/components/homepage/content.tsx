@@ -8,21 +8,20 @@ export default function ContentSection() {
       <div className="mx-auto max-w-5xl px-6">
         <div className="grid gap-6 md:grid-cols-2 md:gap-12">
           <h2 className="text-4xl font-medium">
-            The Starter Kit you need to start your SaaS application.
+            A mirror for how you talk — so you can maxx out how you link.
           </h2>
           <div className="space-y-6">
             <p>
-              Stop rebuilding the same foundation over and over. RSK eliminates
-              months of integration work by providing a complete,
-              production-ready SaaS template with authentication, payments, and
-              real-time data working seamlessly out of the box.{" "}
+              We're flooded with noise, trapped in surface-level conversations, and robbed of real presence. 
+              LinkMaxxing was born from one question: <span className="font-semibold italic">How can we help people truly connect—not just exist near each other?</span>
             </p>
             <p>
-              <span className="font-bold">From idea to launch in weeks,</span>{" "}
-              not months. With TypeScript safety, modern UI components, and
-              scalable architecture built-in, you can validate your business
-              concept and start generating revenue while your competitors are
-              still setting up their development environment.{" "}
+              The problem isn't just what we say—it's <span className="font-bold">how we say it.</span> From filler words to unfocused rambles, 
+              most of us don't realize how much we get in our own way. LinkMaxxing gives you the power to understand 
+              and improve how you speak, with the ultimate goal to unlock deeper relationships through better conversations.
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Privacy-first. On-device processing. Your conversations stay yours—like a therapist that would never share personal info with anyone else.
             </p>
             <Button
               asChild
@@ -30,9 +29,9 @@ export default function ContentSection() {
               size="sm"
               className="gap-1 pr-1.5"
             >
-              <Link to="#">
-                <span>Learn More</span>
-                <ChevronRight className="size-2" />
+              <Link to="#how-it-works">
+                <span>See How It Works</span>
+                <ChevronRight className="size-4" />
               </Link>
             </Button>
           </div>

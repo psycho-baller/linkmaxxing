@@ -2,19 +2,20 @@ import { getAuth } from "@clerk/react-router/ssr.server";
 // import { fetchAction, fetchQuery } from "convex/nextjs";
 
 import ContentSection from "~/components/homepage/content";
+import FeaturesSection from "~/components/homepage/features";
 import Footer from "~/components/homepage/footer";
+import HowItWorksSection from "~/components/homepage/how-it-works";
 import Integrations from "~/components/homepage/integrations";
-import Pricing from "~/components/homepage/pricing";
-import Team from "~/components/homepage/team";
+import TechnologiesSection from "~/components/homepage/technologies";
 import { api } from "../../convex/_generated/api";
 import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
-  const title = "React Starter Kit - Launch Your SAAS Quickly";
+  const title = "LinkMaxxing - Transform How You Connect";
   const description =
-    "This powerful starter kit is designed to help you launch your SAAS application quickly and efficiently.";
-  const keywords = "React, Starter Kit, SAAS, Launch, Quickly, Efficiently";
-  const siteUrl = "https://www.reactstarter.xyz/";
+    "Your on-device speech reflection app. Become a more intentional, articulate communicator and unlock deeper relationships through better conversations.";
+  const keywords = "Communication, Speech Analysis, Relationships, AI Coaching, Privacy-First, Connection, Conversation Skills";
+  const siteUrl = "https://www.linkmaxing.com/";
   const imageUrl =
     "https://jdj14ctwppwprnqu.public.blob.vercel-storage.com/rsk-image-FcUcfBMBgsjNLo99j3NhKV64GT2bQl.png";
 
@@ -33,7 +34,7 @@ export function meta({}: Route.MetaArgs) {
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
     { property: "og:url", content: siteUrl },
-    { property: "og:site_name", content: "React Starter Kit" },
+    { property: "og:site_name", content: "LinkMaxxing" },
     { property: "og:image", content: imageUrl },
 
     // Twitter Card
@@ -81,8 +82,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <>
       <Integrations loaderData={loaderData} />
       <ContentSection />
-      <Team />
-      <Pricing loaderData={loaderData} />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <TechnologiesSection />
       <Footer />
     </>
   );

@@ -53,7 +53,7 @@ export default function ConnectionGraph() {
       if (container) {
         setDimensions({
           width: container.offsetWidth,
-          height: Math.max(600, window.innerHeight/2)
+          height: Math.max(600, window.innerHeight/3)
         });
       }
     };
@@ -102,7 +102,7 @@ export default function ConnectionGraph() {
         } else {
           keywordColor = "#fde047"; // Light yellow for single user
         }
-        
+
         return {
           ...node,
           val: Math.min(6, 3 + node.userCount * 0.5), // Smaller, max size of 6
@@ -112,7 +112,7 @@ export default function ConnectionGraph() {
         // User nodes - each user gets a different color
         const color = userColors[userIndex % userColors.length];
         userIndex++;
-        
+
         return {
           ...node,
           val: 6, // Smaller fixed size for users

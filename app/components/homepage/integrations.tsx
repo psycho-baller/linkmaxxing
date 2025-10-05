@@ -61,11 +61,13 @@ export default function IntegrationsSection({
             </div>
             <div className="mx-auto mt-6 max-w-lg space-y-6 text-center sm:mt-0 sm:text-left">
               <h2 className="text-balance text-3xl font-semibold md:text-4xl">
-                React Starter Kit
+                LinkMaxxing
               </h2>
+              <p className="text-muted-foreground text-lg">
+                Transform how you connect. Because the strongest force in the world isn't data or code—it's the connections we make with each other.
+              </p>
               <p className="text-muted-foreground">
-                This powerful starter kit is designed to help you launch your
-                SAAS application quickly and efficiently.
+                Your on-device speech reflection app that helps you become a more intentional, articulate, and deeply connected communicator.
               </p>
 
               <div className="flex gap-3">
@@ -82,18 +84,14 @@ export default function IntegrationsSection({
                   >
                     {loaderData?.isSignedIn
                       ? loaderData?.hasActiveSubscription
-                        ? "Go to Dashboard (Demo)"
-                        : "Subscribe Now (Demo)"
-                      : "Get Started (Demo)"}
+                        ? "Go to Dashboard"
+                        : "Start Connecting Better"
+                      : "Start Your Journey"}
                   </Link>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <Link
-                    to="https://github.com/michaelshimeles/react-starter-kit"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ⭐️ Star on GitHub
+                  <Link to="#features">
+                    Learn More
                   </Link>
                 </Button>
               </div>

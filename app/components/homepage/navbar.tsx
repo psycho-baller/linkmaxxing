@@ -8,8 +8,8 @@ import { cn } from "~/lib/utils";
 const menuItems = [
   { name: "Home", href: "#hero" },
   { name: "Features", href: "#features" },
-  { name: "Team", href: "#team" },
-  { name: "Pricing", href: "#pricing" },
+  { name: "How It Works", href: "#how-it-works" },
+  { name: "Technologies", href: "#technologies" },
 ];
 
 export const Navbar = ({

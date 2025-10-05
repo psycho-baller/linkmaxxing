@@ -56,6 +56,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
   const [autoStarted, setAutoStarted] = useState(false);
   const [realtimeTranscript, setRealtimeTranscript] = useState<string>("");
   const [currentSentence, setCurrentSentence] = useState<string>("");
+  const [displayTranscriptTurns, setDisplayTranscriptTurns] = useState<TranscriptTurn[]>([]);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const speechmaticsClientRef = useRef<RealtimeClient | null>(null);
@@ -169,7 +170,10 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
               fullTranscriptRef.current += (fullTranscriptRef.current ? " " : "") + completeSentence;
               setRealtimeTranscript(fullTranscriptRef.current);
               setCurrentSentence("");
-              
+
+              // Update display with new turns
+              setDisplayTranscriptTurns([...transcriptTurnsRef.current]);
+
               // Reset buffers for next sentence
               sentenceBuffer = "";
               currentSpeaker = undefined;
@@ -273,6 +277,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
       transcriptTurnsRef.current = [];
       setRealtimeTranscript("");
       setCurrentSentence("");
+      setDisplayTranscriptTurns([]);
 
       // Collect audio chunks for storage
       recorder.ondataavailable = (event) => {
@@ -331,34 +336,34 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           // Process with AI using the real-time transcript
           // S1 = initiator (person who created the call)
           // S2 = scanner (person who scanned the QR code)
-          // const result = await processRealtimeTranscript({
-          //   conversationId: conversationId as Id<"conversations">,
-          //   transcriptTurns: structuredTranscript,
-          //   initiatorName: initiatorUser?.name || "Speaker 1",
-          //   scannerName: scannerUser?.name || "Speaker 2",
-          //   userEmail: user?.primaryEmailAddress?.emailAddress,
-          //   userName: user?.fullName || user?.firstName || undefined,
-          // });
+          const result = await processRealtimeTranscript({
+            conversationId: conversationId as Id<"conversations">,
+            transcriptTurns: structuredTranscript,
+            initiatorName: initiatorUser?.name || "Speaker 1",
+            scannerName: scannerUser?.name || "Speaker 2",
+            userEmail: user?.primaryEmailAddress?.emailAddress,
+            userName: user?.fullName || user?.firstName || undefined,
+          });
 
-          // console.log("Real-time processing result:", result);
-          // setTranscriptResult(result);
+          console.log("Real-time processing result:", result);
+          setTranscriptResult(result);
 
           // Now run batch transcription for more accurate final transcript
           console.log("Starting batch transcription for final accuracy...");
           try {
-            const batchResult = await batchTranscribe({
-              storageId,
-              conversationId: conversationId as Id<"conversations">,
-              initiatorUserName: initiatorUser?.name || "S1",
-              scannerUserName: scannerUser?.name || "S2",
-            });
+            // const batchResult = await batchTranscribe({
+            //   storageId,
+            //   conversationId: conversationId as Id<"conversations">,
+            //   initiatorUserName: initiatorUser?.name || "S1",
+            //   scannerUserName: scannerUser?.name || "S2",
+            // });
 
-            console.log("Batch transcription complete:", batchResult);
+            // console.log("Batch transcription complete:", batchResult);
 
             // Process batch transcript with speaker names
             const batchTranscriptWithNames = await processRealtimeTranscript({
               conversationId: conversationId as Id<"conversations">,
-              transcriptTurns: batchResult.transcript,
+              transcriptTurns: structuredTranscript,
               initiatorName: initiatorUser?.name || "Speaker 1",
               scannerName: scannerUser?.name || "Speaker 2",
               userEmail: user?.primaryEmailAddress?.emailAddress,
@@ -497,15 +502,38 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
       </div>
 
       {/* Real-time Transcript Display */}
-      {isRecording && (realtimeTranscript || currentSentence) && (
-        <div className="bg-[#353E41] rounded-2xl p-4 w-full space-y-3 max-h-48 overflow-y-auto">
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Live Transcript</h3>
-          <div className="text-sm text-white space-y-2">
-            {realtimeTranscript && (
-              <p className="text-gray-200">{realtimeTranscript}</p>
-            )}
+      {isRecording && (displayTranscriptTurns.length > 0 || currentSentence) && (
+        <div className="bg-[#353E41] rounded-2xl p-6 w-full">
+          <h3 className="text-sm font-medium text-gray-400 mb-4">Live Transcript</h3>
+          <div className="space-y-4 max-h-64 overflow-y-auto">
+            {displayTranscriptTurns.map((turn, index) => (
+              <div key={index} className="flex space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xs font-medium text-white">
+                    {turn.speaker.charAt(0)}
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm font-medium text-gray-200">
+                      {turn.speaker}
+                    </span>
+                  </div>
+                  <p className="text-gray-300 text-sm leading-relaxed">{turn.text}</p>
+                </div>
+              </div>
+            ))}
             {currentSentence && (
-              <p className="text-blue-300 italic">{currentSentence}...</p>
+              <div className="flex space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center text-xs font-medium text-white animate-pulse">
+                    {currentSentence.match(/\[(.+?)\]/)?.[1]?.charAt(0) || "?"}
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <p className="text-blue-300 text-sm italic">{currentSentence}...</p>
+                </div>
+              </div>
             )}
           </div>
         </div>

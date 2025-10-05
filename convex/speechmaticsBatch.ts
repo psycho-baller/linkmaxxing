@@ -76,6 +76,7 @@ export const batchTranscribe = action({
             operating_point: "enhanced",
             diarization: "speaker",
             speaker_diarization_config: {
+              // max_speakers: 2,
               // prefer_current_speaker: true,
               // speaker_sensitivity: 1,
             },

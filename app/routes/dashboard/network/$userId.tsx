@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -15,7 +16,13 @@ import {
   Calendar,
   MapPin,
   TrendingUp,
-  FileText
+  FileText,
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
+  Activity,
+  Target,
+  Zap
 } from "lucide-react";
 
 function getInitials(name?: string | null, email?: string | null) {
@@ -67,6 +74,7 @@ function getStatusColor(status: string) {
 export default function ContactDetailPage() {
   const { userId } = useParams<{ userId: Id<"users"> }>();
   const navigate = useNavigate();
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const contactDetails = useQuery(
     api.network.getContactDetails, 
     userId ? { contactId: userId as Id<"users"> } : "skip"
@@ -106,6 +114,50 @@ export default function ContactDetailPage() {
   const { contact, conversations, sharedFacts, stats } = contactDetails;
   const displayName = contact.name || contact.email || "Unknown";
 
+  // Calculate advanced analytics
+  const analytics = {
+    // Communication balance (percentage of total turns)
+    yourBalance: stats.currentUserTurns + stats.contactTurns > 0
+      ? Math.round((stats.currentUserTurns / (stats.currentUserTurns + stats.contactTurns)) * 100)
+      : 50,
+    contactBalance: stats.currentUserTurns + stats.contactTurns > 0
+      ? Math.round((stats.contactTurns / (stats.currentUserTurns + stats.contactTurns)) * 100)
+      : 50,
+    
+    // Average conversation duration
+    avgDuration: conversations.length > 0 
+      ? Math.round(stats.totalDuration / conversations.length)
+      : 0,
+    
+    // Conversation frequency (days between conversations on average)
+    avgDaysBetween: conversations.length > 1
+      ? Math.round(
+          (conversations[0]._creationTime - conversations[conversations.length - 1]._creationTime) / 
+          (1000 * 60 * 60 * 24) / (conversations.length - 1)
+        )
+      : 0,
+    
+    // Most common meeting locations
+    locations: conversations
+      .filter(c => c.location)
+      .reduce((acc, c) => {
+        const loc = c.location!;
+        acc[loc] = (acc[loc] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+    
+    // Conversation status breakdown
+    statusBreakdown: conversations.reduce((acc, c) => {
+      acc[c.status] = (acc[c.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    
+    // Engagement score (based on turns per conversation)
+    engagementScore: conversations.length > 0
+      ? Math.round(((stats.currentUserTurns + stats.contactTurns) / conversations.length))
+      : 0,
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col">
       {/* Header */}
@@ -141,6 +193,15 @@ export default function ContactDetailPage() {
                   <Badge variant="outline">
                     {formatDuration(stats.totalDuration)} total time
                   </Badge>
+                  <Button
+                    variant={showAnalytics ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setShowAnalytics(!showAnalytics)}
+                    className="gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    {showAnalytics ? "Hide" : "Show"} Analytics
+                    {showAnalytics ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -174,6 +235,142 @@ export default function ContactDetailPage() {
                   <p className="text-xs text-muted-foreground mt-1">transcript turns</p>
                 </div>
               </div>
+
+              {/* Advanced Analytics (Toggleable) */}
+              {showAnalytics && (
+                <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="w-5 h-5 text-primary" />
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Relationship Analytics
+                    </h2>
+                  </div>
+
+                  {/* Communication Balance */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">Communication Balance</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">Who talks more?</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-12">You</span>
+                        <div className="flex-1 bg-muted rounded-full h-3 overflow-hidden">
+                          <div 
+                            className="bg-primary h-full transition-all"
+                            style={{ width: `${analytics.yourBalance}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground w-12 text-right">
+                          {analytics.yourBalance}%
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-12">Them</span>
+                        <div className="flex-1 bg-muted rounded-full h-3 overflow-hidden">
+                          <div 
+                            className="bg-blue-500 h-full transition-all"
+                            style={{ width: `${analytics.contactBalance}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground w-12 text-right">
+                          {analytics.contactBalance}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Engagement Metrics */}
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Target className="w-4 h-4" />
+                        <span className="text-xs">Avg Conversation</span>
+                      </div>
+                      <p className="text-xl font-bold text-foreground">
+                        {formatDuration(analytics.avgDuration)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">per session</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Zap className="w-4 h-4" />
+                        <span className="text-xs">Engagement Score</span>
+                      </div>
+                      <p className="text-xl font-bold text-foreground">
+                        {analytics.engagementScore}
+                      </p>
+                      <p className="text-xs text-muted-foreground">exchanges/conversation</p>
+                    </div>
+
+                    {analytics.avgDaysBetween > 0 && (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          <span className="text-xs">Frequency</span>
+                        </div>
+                        <p className="text-xl font-bold text-foreground">
+                          {analytics.avgDaysBetween}
+                        </p>
+                        <p className="text-xs text-muted-foreground">days between talks</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <TrendingUp className="w-4 h-4" />
+                        <span className="text-xs">Total Exchanges</span>
+                      </div>
+                      <p className="text-xl font-bold text-foreground">
+                        {stats.currentUserTurns + stats.contactTurns}
+                      </p>
+                      <p className="text-xs text-muted-foreground">all time</p>
+                    </div>
+                  </div>
+
+                  {/* Meeting Locations */}
+                  {Object.keys(analytics.locations).length > 0 && (
+                    <div className="space-y-3 pt-4 border-t border-border">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">Top Meeting Locations</span>
+                      </div>
+                      <div className="space-y-2">
+                        {Object.entries(analytics.locations)
+                          .sort(([, a], [, b]) => b - a)
+                          .slice(0, 3)
+                          .map(([location, count]) => (
+                            <div key={location} className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">{location}</span>
+                              <Badge variant="secondary" className="text-xs">
+                                {count} time{count === 1 ? "" : "s"}
+                              </Badge>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Conversation Status */}
+                  <div className="space-y-3 pt-4 border-t border-border">
+                    <span className="text-sm font-medium text-foreground">Conversation Status</span>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(analytics.statusBreakdown).map(([status, count]) => (
+                        <Badge 
+                          key={status} 
+                          className={getStatusColor(status)}
+                          variant="outline">
+                          {status}: {count}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Conversations List */}
               <div className="rounded-xl border border-border bg-card p-6">

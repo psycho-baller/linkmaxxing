@@ -15,7 +15,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
-              href="https://github.com/psycho-baller/mru-hacks"
+              href="https://github.com/psycho-baller/mru-2025"
               rel="noopener noreferrer"
               target="_blank"
               className="dark:text-foreground"

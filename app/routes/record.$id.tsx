@@ -2,10 +2,11 @@ import { useParams, useNavigate } from "react-router";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { MoveUpLeft } from "lucide-react";
+import { MoveUpLeft, Loader2, AlertCircle } from "lucide-react";
 import PendingView from "../components/recording/PendingView";
 import CurrentView from "../components/recording/CurrentView";
 import CompletedView from "../components/recording/CompletedView";
+import { Button } from "../components/ui/button";
 
 export default function ConversationPage() {
   const { id } = useParams<{ id: Id<"conversations"> }>();
@@ -14,18 +15,24 @@ export default function ConversationPage() {
 
   if (!id) {
     return (
-      <div className="h-screen bg-gradient-to-b from-[#343D40] to-[#131519] text-white flex items-center justify-center">
-        <p>Invalid conversation ID</p>
+      <div className="h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
+          <p className="text-foreground font-medium">Invalid conversation ID</p>
+          <Button onClick={() => navigate("/dashboard")}>
+            Return to Dashboard
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (conversation === undefined) {
     return (
-      <div className="h-screen bg-gradient-to-b from-[#343D40] to-[#131519] text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Loading conversation...</p>
+      <div className="h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading conversation...</p>
         </div>
       </div>
     );
@@ -33,14 +40,16 @@ export default function ConversationPage() {
 
   if (conversation === null) {
     return (
-      <div className="h-screen bg-gradient-to-b from-[#343D40] to-[#131519] text-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">Conversation not found</p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg">
-            Go Back
-          </button>
+      <div className="h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
+          <div>
+            <p className="text-foreground font-medium mb-1">Conversation not found</p>
+            <p className="text-sm text-muted-foreground">This conversation may have been deleted or doesn't exist.</p>
+          </div>
+          <Button onClick={() => navigate("/dashboard")}>
+            Return to Dashboard
+          </Button>
         </div>
       </div>
     );
@@ -59,24 +68,48 @@ export default function ConversationPage() {
     }
   };
 
+  const getStatusColor = () => {
+    switch (conversation.status) {
+      case "active":
+        return "bg-green-500/10 text-green-500 border-green-500/20";
+      case "ended":
+        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      case "pending":
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+      default:
+        return "bg-muted-foreground/10 text-muted-foreground border-muted-foreground/20";
+    }
+  };
+
   return (
-    <div className="h-screen bg-gradient-to-b from-[#343D40] to-[#131519] text-white flex flex-col">
-      <button
-        onClick={() => navigate("/dashboard")}
-        className="w-[30px] h-[30px] mt-5 ml-5 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100/10 transition-colors">
-        <MoveUpLeft className="w-4 h-4 text-white" />
-      </button>
+    <div className="h-screen bg-background flex flex-col">
+      {/* Header Bar */}
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="p-2 rounded-lg hover:bg-muted transition-colors group">
+            <MoveUpLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <h1 className="text-sm font-semibold text-foreground">
+                Conversation
+              </h1>
+              <p className="text-xs text-muted-foreground font-mono">
+                #{id.slice(0, 8)}
+              </p>
+            </div>
+            <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor()}`}>
+              {conversation.status.toUpperCase()}
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <div className="flex-1 flex flex-col items-center px-6">
-        <h1
-          className="text-2xl font-normal text-gray-200 mb-1"
-          style={{ fontFamily: "Simonetta, serif" }}>
-          Conversation {id.slice(0, 8)}
-        </h1>
-        <p className="text-[10px] text-gray-400 mb-4">
-          Status: {conversation.status.toUpperCase()}
-        </p>
-
+      {/* Content */}
+      <div className="flex-1 overflow-auto">
         {renderContent()}
       </div>
     </div>

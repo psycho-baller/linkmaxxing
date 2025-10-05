@@ -24,15 +24,31 @@ export default function CompletedView({
     conversationId: conversationId as Id<"conversations">,
   }) || [];
 
+  // Get initiator and scanner user data
+  const initiatorUser = useQuery(
+    api.users.get,
+    conversation?.initiatorUserId ? { id: conversation.initiatorUserId } : "skip"
+  );
+  const scannerUser = useQuery(
+    api.users.get,
+    conversation?.scannerUserId ? { id: conversation.scannerUserId } : "skip"
+  );
+
   // Get unique speakers
   const speakers = Array.from(
     new Set(transcriptTurns.map((turn) => turn.speaker))
   );
 
-  // Convert facts array to object
+  // Convert facts array to object, mapping userId to user name
   const facts: Record<string, string[]> = {};
   conversationFacts.forEach((fact) => {
-    facts[fact.speaker] = fact.facts;
+    let userName = "Unknown";
+    if (initiatorUser && fact.userId === conversation.initiatorUserId) {
+      userName = initiatorUser.name || "Unknown";
+    } else if (scannerUser && fact.userId === conversation.scannerUserId) {
+      userName = scannerUser.name || "Unknown";
+    }
+    facts[userName] = fact.facts;
   });
 
   const handlePlayPause = () => {
@@ -158,25 +174,25 @@ export default function CompletedView({
       )}
 
       {/* Transcript */}
-      <div className="bg-[#353E41] rounded-2xl p-6">
-        <h3 className="text-lg font-medium mb-4">Transcript</h3>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Transcript</h3>
+        <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
           {transcriptTurns
             .filter((turn) => !selectedSpeaker || turn.speaker === selectedSpeaker)
             .map((turn, index) => (
               <div key={turn._id} className="flex space-x-3">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xs font-medium text-white">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-xs font-medium text-primary-foreground">
                     {turn.speaker.charAt(0)}
                   </div>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
-                    <span className="text-sm font-medium text-gray-200">
+                    <span className="text-sm font-medium text-foreground">
                       {turn.speaker}
                     </span>
                   </div>
-                  <p className="text-gray-300 leading-relaxed">{turn.text}</p>
+                  <p className="text-muted-foreground leading-relaxed">{turn.text}</p>
                 </div>
               </div>
             ))}
@@ -185,19 +201,19 @@ export default function CompletedView({
 
       {/* Key Facts */}
       {Object.keys(facts).length > 0 && (
-        <div className="bg-[#353E41] rounded-2xl p-6">
-          <h3 className="text-lg font-medium mb-4">Key Facts</h3>
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-lg">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Key Facts</h3>
           <div className="grid gap-4">
             {Object.entries(facts).map(([speaker, speakerFacts]) => (
               <div key={speaker} className="space-y-2">
-                <h4 className="font-medium text-gray-200">{speaker}</h4>
-                <ul className="space-y-1 ml-4">
+                <h4 className="font-medium text-foreground">{speaker}</h4>
+                <ul className="space-y-2 ml-4">
                   {speakerFacts.map((fact: string, index: number) => (
                     <li
                       key={index}
-                      className="text-gray-300 text-sm flex items-start">
-                      <span className="text-blue-400 mr-2">•</span>
-                      {fact}
+                      className="text-muted-foreground text-sm flex items-start">
+                      <span className="text-primary mr-2 mt-1">•</span>
+                      <span className="flex-1">{fact}</span>
                     </li>
                   ))}
                 </ul>

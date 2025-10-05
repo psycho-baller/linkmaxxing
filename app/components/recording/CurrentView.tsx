@@ -37,6 +37,16 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
     api.conversations.get,
     { id: conversationId as Id<"conversations"> }
   );
+
+  // Get initiator and scanner user data
+  const initiatorUser = useQuery(
+    api.users.get,
+    conversation ? { id: conversation.initiatorUserId } : "skip"
+  );
+  const scannerUser = useQuery(
+    api.users.get,
+    conversation?.scannerUserId ? { id: conversation.scannerUserId } : "skip"
+  );
   const [duration, setDuration] = useState(0);
   const [startTime] = useState<number>(Date.now());
   const [isRecording, setIsRecording] = useState(false);
@@ -59,6 +69,8 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
   const generateSpeechmaticsJWT = useAction(api.speechmatics?.generateJWT);
   // @ts-ignore - API will be available after convex dev regenerates types
   const processRealtimeTranscript = useAction(api.realtimeTranscription?.processRealtimeTranscript);
+  // @ts-ignore - API will be available after convex dev regenerates types
+  const batchTranscribe = useAction(api.speechmaticsBatch?.batchTranscribe);
 
   // Check if current user is the scanner (not the initiator)
   const isScanner = currentUser && conversation && currentUser._id === conversation.scannerUserId;
@@ -98,12 +110,16 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           console.log("Speechmatics session started - ready to receive audio");
           isSessionReady = true;
         } else if (data.message === "AddTranscript") {
+          console.log("AddTranscript event received:", JSON.stringify(data, null, 2));
+
           let sentenceBuffer = "";
           let currentSpeaker: string | undefined;
           let startTime: number | undefined;
           let endTime: number | undefined;
 
           for (const result of data.results) {
+            console.log("Processing result:", result);
+
             // Track speaker and timing
             if (result.start_time !== undefined) {
               startTime = startTime ?? result.start_time;
@@ -112,12 +128,15 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
 
             // Speaker label from diarization (e.g., "S1", "S2")
             const speaker = result.alternatives?.[0]?.speaker || "Unknown";
+            const content = result.alternatives?.[0]?.content || "";
+
+            console.log(`Result type: ${result.type}, speaker: ${speaker}, content: "${content}"`);
 
             if (result.type === "word") {
-              sentenceBuffer += " " + result.alternatives?.[0].content;
+              sentenceBuffer += " " + content;
               currentSpeaker = speaker;
             } else if (result.type === "punctuation") {
-              sentenceBuffer += result.alternatives?.[0].content;
+              // sentenceBuffer += content;
             }
 
             // End of sentence
@@ -204,8 +223,8 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
         transcription_config: {
           language: "en",
           operating_point: "enhanced",
-          max_delay: 1.0,
-          enable_partials: true,
+          max_delay: 3.0,
+          enable_partials: false,
           // conversation_config: {
           //   end_of_utterance_silence_trigger: 0.5,
           // },
@@ -214,7 +233,7 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
             max_speakers: 2, // Expecting 2 speakers in conversation
           },
           transcript_filtering_config: {
-            remove_disfluencies: true,
+            // remove_disfluencies: true,
           },
         },
         audio_format: {
@@ -225,8 +244,20 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
       });
 
       // Create MediaRecorder for audio archival
+      // Use a format supported by Speechmatics Batch API (mp4, mpeg, ogg, or webm as fallback)
+      let mimeType = "audio/webm"; // fallback
+      if (MediaRecorder.isTypeSupported("audio/mp4")) {
+        mimeType = "audio/mp4";
+      } else if (MediaRecorder.isTypeSupported("audio/mpeg")) {
+        mimeType = "audio/mpeg";
+      } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
+        mimeType = "audio/ogg";
+      }
+
+      console.log("Using MediaRecorder with mimeType:", mimeType);
+
       const recorder = new MediaRecorder(stream, {
-        mimeType: "audio/webm",
+        mimeType: mimeType,
       });
       setMediaRecorder(recorder);
 
@@ -292,15 +323,49 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           }
 
           // Process with AI using the real-time transcript
+          // S1 = initiator (person who created the call)
+          // S2 = scanner (person who scanned the QR code)
           const result = await processRealtimeTranscript({
             conversationId: conversationId as Id<"conversations">,
             transcriptTurns: structuredTranscript,
+            initiatorName: initiatorUser?.name || "Speaker 1",
+            scannerName: scannerUser?.name || "Speaker 2",
             userEmail: user?.primaryEmailAddress?.emailAddress,
             userName: user?.fullName || user?.firstName || undefined,
           });
 
-          console.log("Processing result:", result);
+          console.log("Real-time processing result:", result);
           setTranscriptResult(result);
+
+          // Now run batch transcription for more accurate final transcript
+          console.log("Starting batch transcription for final accuracy...");
+          try {
+            const batchResult = await batchTranscribe({
+              storageId,
+              conversationId: conversationId as Id<"conversations">,
+              initiatorUserName: initiatorUser?.name || "S1",
+              scannerUserName: scannerUser?.name || "S2",
+            });
+
+            console.log("Batch transcription complete:", batchResult);
+
+            // Process batch transcript with speaker names
+            const batchTranscriptWithNames = await processRealtimeTranscript({
+              conversationId: conversationId as Id<"conversations">,
+              transcriptTurns: batchResult.transcript,
+              initiatorName: initiatorUser?.name || "Speaker 1",
+              scannerName: scannerUser?.name || "Speaker 2",
+              userEmail: user?.primaryEmailAddress?.emailAddress,
+              userName: user?.fullName || user?.firstName || undefined,
+            });
+
+            console.log("Final batch transcript with names:", batchTranscriptWithNames);
+            // Update UI with the more accurate batch result
+            setTranscriptResult(batchTranscriptWithNames);
+          } catch (batchError) {
+            console.error("Batch transcription failed:", batchError);
+            // Continue with real-time result if batch fails
+          }
         } catch (error) {
           console.error("Error processing transcript:", error);
           alert("Error processing recording. Please try again.");

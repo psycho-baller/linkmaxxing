@@ -149,7 +149,10 @@ export const saveTranscriptData = mutation({
   args: {
     conversationId: v.id("conversations"),
     transcript: v.array(v.object({ speaker: v.string(), text: v.string() })),
-    facts: v.any(), // Record<string, string[]>
+    S1_facts: v.array(v.string()),
+    S2_facts: v.array(v.string()),
+    initiatorName: v.optional(v.string()),
+    scannerName: v.optional(v.string()),
     summary: v.string(),
   },
   returns: v.null(),
@@ -157,6 +160,12 @@ export const saveTranscriptData = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Not authenticated");
+    }
+
+    // Get conversation to extract user IDs
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation) {
+      throw new Error("Conversation not found");
     }
 
     // Save summary to conversation
@@ -176,13 +185,24 @@ export const saveTranscriptData = mutation({
       });
     }
 
-    // Save facts
-    for (const [speaker, speakerFacts] of Object.entries(args.facts as Record<string, string[]>)) {
+    // Save S1 facts (initiator)
+    for (const fact of args.S1_facts) {
       await ctx.db.insert("conversationFacts", {
         conversationId: args.conversationId,
-        speaker,
-        facts: speakerFacts,
+        userId: conversation.initiatorUserId,
+        facts: [fact],
       });
+    }
+
+    // Save S2 facts (scanner)
+    if (conversation.scannerUserId) {
+      for (const fact of args.S2_facts) {
+        await ctx.db.insert("conversationFacts", {
+          conversationId: args.conversationId,
+          userId: conversation.scannerUserId,
+          facts: [fact],
+        });
+      }
     }
 
     return null;
@@ -330,7 +350,7 @@ export const getFacts = query({
       _id: v.id("conversationFacts"),
       _creationTime: v.number(),
       conversationId: v.id("conversations"),
-      speaker: v.string(),
+      userId: v.id("users"),
       facts: v.array(v.string()),
     })
   ),

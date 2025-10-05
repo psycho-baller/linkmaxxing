@@ -122,12 +122,13 @@ Provide:
     }
 
     // Save to Convex database
-    await ctx.runMutation(api.conversations.saveTranscriptData, {
-      conversationId: args.conversationId,
-      transcript: parsedResult.transcript,
-      facts: parsedResult.facts,
-      summary: parsedResult.summary,
-    });
+    // await ctx.runMutation(api.conversations.saveTranscriptData, {
+    //   conversationId: args.conversationId,
+    //   transcript: parsedResult.transcript,
+    //   S1_facts: parsedResult.facts,
+    //   S2_facts: parsedResult.facts,
+    //   summary: parsedResult.summary,
+    // });
 
     return {
       transcript: parsedResult.transcript,

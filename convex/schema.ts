@@ -43,7 +43,7 @@ export default defineSchema({
   })
     .index("type", ["type"])
     .index("polarEventId", ["polarEventId"]),
-  
+
   // Conversation-related tables for privacy-first recording platform
   conversations: defineTable({
     initiatorUserId: v.id("users"),
@@ -66,17 +66,19 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_invite_code", ["inviteCode"])
     .index("by_initiator_and_status", ["initiatorUserId", "status"]),
-  
+
   transcriptTurns: defineTable({
     conversationId: v.id("conversations"),
     speaker: v.string(),
     text: v.string(),
     order: v.number(),
   }).index("by_conversation_and_order", ["conversationId", "order"]),
-  
+
   conversationFacts: defineTable({
     conversationId: v.id("conversations"),
-    speaker: v.string(),
+    userId: v.id("users"),
     facts: v.array(v.string()),
-  }).index("by_conversation", ["conversationId"]),
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_user", ["userId"]),
 });

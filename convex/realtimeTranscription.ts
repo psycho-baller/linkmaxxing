@@ -30,72 +30,82 @@ export const processRealtimeTranscript = action({
         endTime: v.number(),
       })
     ),
+    initiatorName: v.optional(v.string()),
+    scannerName: v.optional(v.string()),
     userEmail: v.optional(v.string()),
     userName: v.optional(v.string()),
   },
   returns: v.object({
     transcript: v.array(v.object({ speaker: v.string(), text: v.string() })),
-    facts: v.any(),
+    S1_facts: v.array(v.string()),
+    S2_facts: v.array(v.string()),
     summary: v.string(),
   }),
   handler: async (ctx, args) => {
     console.log("Processing real-time transcript with speaker labels...");
     console.log(`Received ${args.transcriptTurns.length} conversation turns`);
 
-    // Format transcript for AI processing
+    // Map S1 to initiator, S2 to scanner
+    const speakerMap: Record<string, string> = {
+      "S1": args.initiatorName || "Speaker 1",
+      "S2": args.scannerName || "Speaker 2",
+      "Unknown": "Unknown Speaker",
+    };
+
+    console.log("Speaker mapping:", speakerMap);
+
+    // Convert transcript turns with actual names
+    const transcript = args.transcriptTurns.map(turn => ({
+      speaker: speakerMap[turn.speaker] || turn.speaker,
+      text: turn.text,
+    }));
+
+    // Format transcript for AI analysis (facts and summary only) with actual names
     const formattedTranscript = args.transcriptTurns
-      .map(
-        (turn) =>
-          //[${turn.startTime.toFixed(2)}-${turn.endTime.toFixed(2)}]
-          `${turn.speaker}: ${turn.text}`
-      )
+      .map(turn => {
+        const speakerName = speakerMap[turn.speaker] || turn.speaker;
+        return `${speakerName}: ${turn.text}`;
+      })
       .join("\n");
 
-    console.log("Formatted transcript:", formattedTranscript);
+    console.log("Formatted transcript with names:", formattedTranscript);
 
-    // Process with AI for structured output and speaker name identification
-    const { object: parsedResult } = await generateObject({
+    // Use AI ONLY for facts extraction and summary generation
+    const { object: aiAnalysis } = await generateObject({
       model: openaiProvider("gpt-4o"),
       schema: z.object({
-        transcript: z.array(
-          z.object({
-            speaker: z.string().describe("Name or identifier of the speaker (try to identify actual names from context)"),
-            text: z.string().describe("What the speaker said"),
-          })
-        ),
-        facts: z.record(
-          z.string(),
-          z.array(z.string())
-        ).describe("Facts extracted for each speaker, with speaker name as key"),
-        summary: z.string().describe("Brief summary of the conversation"),
+        S1_facts: z.array(z.string()).describe(`Facts extracted for ${speakerMap["S1"]}`).default([]),
+        S2_facts: z.array(z.string()).describe(`Facts extracted for ${speakerMap["S2"]}`).default([]),
+        summary: z.string().describe("Brief summary of the conversation").default(""),
       }),
-      prompt: `You are an AI assistant that processes audio transcripts with speaker labels. The speakers are labeled as S1, S2, etc. Try to identify their actual names from the conversation context.
+      prompt: `You are an AI assistant that analyzes conversation transcripts to extract key facts and generate summaries.
+
+SPEAKERS:
+- ${speakerMap["S1"]}: The person who initiated the conversation
+- ${speakerMap["S2"]}: The person who joined the conversation
 
 REQUIREMENTS:
-- Speakers are labeled as "S1", "S2" by the speech recognition system
-- Try to deduce the speakers' actual names from the transcript (e.g., if someone says "Hi, I'm John", that speaker should be labeled "John")
-- If someone addresses another person by name, that name belongs to the OTHER speaker
-- If you cannot determine actual names, use descriptive labels like "Speaker 1", "Speaker 2"
-- Merge the transcript turns into a clean conversation format
 - Extract only explicit, concrete facts directly stated by each person
 - Do not include questions, opinions, or interpretations in facts
+- Facts should be organized by speaker name
+- Use the actual speaker names provided above as keys in the facts object
+- Generate a concise summary of key points and outcomes
 
-TRANSCRIPT WITH SPEAKER LABELS:
+TRANSCRIPT:
 ${formattedTranscript}
 
 Provide:
-1. transcript: Array of conversation turns with identified speaker names (not S1/S2)
-2. facts: Key facts extracted for each speaker separately (using identified names)
-3. summary: Concise summary of key points and outcomes`,
+1. facts: Key facts extracted for each speaker separately (use actual names as keys: "${args.initiatorName || "Speaker 1"}" and "${args.scannerName || "Speaker 2"}")
+2. summary: Concise summary of key points and outcomes`,
     });
 
-    console.log("AI processing complete:", parsedResult);
+    console.log("AI analysis complete:", aiAnalysis);
 
     // Process with Zep if available
-    if (parsedResult.transcript && parsedResult.facts) {
+    if (transcript && aiAnalysis.S1_facts && aiAnalysis.S2_facts) {
       try {
         await processWithZep(
-          parsedResult,
+          { transcript, facts: aiAnalysis.S1_facts, summary: aiAnalysis.summary },
           args.conversationId,
           args.userEmail,
           args.userName
@@ -107,17 +117,22 @@ Provide:
     }
 
     // Save to Convex database
+    // Use original Speechmatics transcript + AI-generated facts and summary
     await ctx.runMutation(api.conversations.saveTranscriptData, {
       conversationId: args.conversationId,
-      transcript: parsedResult.transcript,
-      facts: parsedResult.facts,
-      summary: parsedResult.summary,
+      transcript: transcript,
+      S1_facts: aiAnalysis.S1_facts,
+      S2_facts: aiAnalysis.S2_facts,
+      initiatorName: args.initiatorName,
+      scannerName: args.scannerName,
+      summary: aiAnalysis.summary,
     });
 
     return {
-      transcript: parsedResult.transcript,
-      facts: parsedResult.facts,
-      summary: parsedResult.summary,
+      transcript: transcript,
+      S1_facts: aiAnalysis.S1_facts,
+      S2_facts: aiAnalysis.S2_facts,
+      summary: aiAnalysis.summary,
     };
   },
 });

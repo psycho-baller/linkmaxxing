@@ -26,6 +26,7 @@
         "@react-router/node": "^7.5.3",
         "@react-router/serve": "^7.5.3",
         "@speechmatics/auth": "^0.1.0",
+        "@speechmatics/batch-client": "^5.1.0",
         "@speechmatics/real-time-client": "^7.0.2",
         "@tabler/icons-react": "^3.33.0",
         "@tanstack/react-table": "^8.21.3",
@@ -398,6 +399,8 @@
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.52.4", "", { "os": "win32", "cpu": "x64" }, "sha512-bf9PtUa0u8IXDVxzRToFQKsNCRz9qLYfR/MpECxl4mRoWYjAeFjgxj1XdZr2M/GNVpT05p+LgQOHopYDlUu6/w=="],
 
     "@speechmatics/auth": ["@speechmatics/auth@0.1.0", "", {}, "sha512-vF1XOFlAtbNSWYsuJm9WDAZfZIOpwibgqu0sH/Qqkbyz2w/EQyoIhlKta8KRVZ74JeKyY08mnGQ17WDj6i6U4Q=="],
+
+    "@speechmatics/batch-client": ["@speechmatics/batch-client@5.1.0", "", { "dependencies": { "zod": "^3.23.8" } }, "sha512-L/FuI7G58p51NOTCHZo5ye2h9RtMPCZHBQoqYtGkAwmiBgBtCabaE8S3giaGUxCqeNKUoLdaRHwig2tO2C3fxg=="],
 
     "@speechmatics/real-time-client": ["@speechmatics/real-time-client@7.0.2", "", { "dependencies": { "typescript-event-target": "^1.1.1", "ws": "^8.18.0" } }, "sha512-/I0MdO5p9yOhoDjgcRXf0span/SHZfcLyw22Bo6RwMOU/vMCgtcbH6i8e9Ak+YrbnboSt0INUQe2W5cUJc7S4g=="],
 

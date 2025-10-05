@@ -108,10 +108,12 @@ export default function ConversationPage() {
         </div>
       </div>
 
-      {/* Content - Centered */}
-      <div className="flex-1 overflow-auto flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
-          {renderContent()}
+      {/* Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="min-h-full flex justify-center p-4 md:p-6">
+          <div className="w-full max-w-4xl">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </div>

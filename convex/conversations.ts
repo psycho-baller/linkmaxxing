@@ -185,24 +185,22 @@ export const saveTranscriptData = mutation({
       });
     }
 
-    // Save S1 facts (initiator)
-    for (const fact of args.S1_facts) {
+    // Save S1 facts (initiator) - all facts in one row
+    if (args.S1_facts.length > 0) {
       await ctx.db.insert("conversationFacts", {
         conversationId: args.conversationId,
         userId: conversation.initiatorUserId,
-        facts: [fact],
+        facts: args.S1_facts,
       });
     }
 
-    // Save S2 facts (scanner)
-    if (conversation.scannerUserId) {
-      for (const fact of args.S2_facts) {
-        await ctx.db.insert("conversationFacts", {
-          conversationId: args.conversationId,
-          userId: conversation.scannerUserId,
-          facts: [fact],
-        });
-      }
+    // Save S2 facts (scanner) - all facts in one row
+    if (conversation.scannerUserId && args.S2_facts.length > 0) {
+      await ctx.db.insert("conversationFacts", {
+        conversationId: args.conversationId,
+        userId: conversation.scannerUserId,
+        facts: args.S2_facts,
+      });
     }
 
     return null;

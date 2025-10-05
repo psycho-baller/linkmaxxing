@@ -21,6 +21,9 @@ export default function CompletedView({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
 
+  // Get current user
+  const currentUser = useQuery(api.users.getCurrentUser);
+
   const transcriptTurns = useQuery(api.conversations.getTranscript, {
     conversationId: conversationId as Id<"conversations">,
   }) || [];
@@ -44,6 +47,15 @@ export default function CompletedView({
     conversationId: conversationId as Id<"conversations">,
   }) || [];
 
+  // Filter analytics and facts to only show current user's data
+  const currentUserAnalytics = conversationAnalytics.filter(
+    (analytics) => currentUser && analytics.userId === currentUser._id
+  );
+  
+  const currentUserFacts = conversationFacts.filter(
+    (fact) => currentUser && fact.userId === currentUser._id
+  );
+
   // Debug log whenever analytics changes
   useEffect(() => {
     console.log("📊 Analytics data updated:", conversationAnalytics);
@@ -52,57 +64,43 @@ export default function CompletedView({
   const analyzeUserSpeech = useMutation(api.analytics.analyzeUserSpeech);
   const generateSuggestions = useAction(api.analytics.generateWeakWordSuggestions);
 
-  // Auto-analyze when conversation is complete
+  // Auto-analyze current user's speech when conversation is complete
   useEffect(() => {
     const runAnalysis = async () => {
       console.log("=== ANALYTICS EFFECT ===");
       console.log("Conversation:", conversation);
-      console.log("Existing analytics count:", conversationAnalytics.length);
+      console.log("Current user:", currentUser);
+      console.log("Existing analytics count:", currentUserAnalytics.length);
       console.log("Is analyzing:", isAnalyzing);
       console.log("Transcript turns:", transcriptTurns.length);
 
-      if (conversation && conversationAnalytics.length === 0 && !isAnalyzing) {
-        console.log("✅ Starting analysis...");
+      // Only analyze if we have a current user and haven't analyzed them yet
+      if (conversation && currentUser && currentUserAnalytics.length === 0 && !isAnalyzing) {
+        console.log("✅ Starting analysis for current user...");
         setIsAnalyzing(true);
         try {
-          // Analyze initiator
-          if (conversation.initiatorUserId) {
-            console.log("📊 Analyzing initiator:", conversation.initiatorUserId);
-            const result = await analyzeUserSpeech({
-              conversationId: conversationId as Id<"conversations">,
-              userId: conversation.initiatorUserId,
-            });
-            console.log("✅ Initiator analysis complete:", result);
-          } else {
-            console.log("⚠️ No initiator userId found");
-          }
-
-          // Analyze scanner if exists
-          if (conversation.scannerUserId) {
-            console.log("📊 Analyzing scanner:", conversation.scannerUserId);
-            const result = await analyzeUserSpeech({
-              conversationId: conversationId as Id<"conversations">,
-              userId: conversation.scannerUserId,
-            });
-            console.log("✅ Scanner analysis complete:", result);
-          } else {
-            console.log("No scanner userId (solo conversation)");
-          }
+          console.log("📊 Analyzing current user:", currentUser._id);
+          const result = await analyzeUserSpeech({
+            conversationId: conversationId as Id<"conversations">,
+            userId: currentUser._id,
+          });
+          console.log("✅ Analysis complete:", result);
         } catch (error) {
           console.error("❌ Error analyzing speech:", error);
         } finally {
           setIsAnalyzing(false);
-          console.log("=== ANALYSIS COMPLETE ===");
+          console.log("=== ANALYTICS COMPLETE ===");
         }
       } else {
         if (!conversation) console.log("No conversation data");
-        if (conversationAnalytics.length > 0) console.log("Analytics already exist");
+        if (!currentUser) console.log("No current user");
+        if (currentUserAnalytics.length > 0) console.log("Analytics already exist");
         if (isAnalyzing) console.log("Already analyzing");
       }
     };
 
     runAnalysis();
-  }, [conversation, conversationAnalytics.length]);
+  }, [conversation, currentUser, currentUserAnalytics.length, isAnalyzing]);
 
   const handleGenerateSuggestions = async (userId: Id<"users">) => {
     console.log("=== GENERATING AI SUGGESTIONS ===");
@@ -129,17 +127,8 @@ export default function CompletedView({
     new Set(transcriptTurns.map((turn) => turn.userId))
   );
 
-  // Convert facts array to object, mapping userId to user name
-  const facts: Record<string, string[]> = {};
-  conversationFacts.forEach((fact) => {
-    let userName = "Unknown";
-    if (initiatorUser && fact.userId === conversation.initiatorUserId) {
-      userName = initiatorUser.name || "Unknown";
-    } else if (scannerUser && fact.userId === conversation.scannerUserId) {
-      userName = scannerUser.name || "Unknown";
-    }
-    facts[userName] = fact.facts;
-  });
+  // Get current user's facts only
+  const currentUserFactsList = currentUserFacts.length > 0 ? currentUserFacts[0].facts : [];
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
@@ -162,14 +151,13 @@ export default function CompletedView({
       .map((turn) => `${getUserName(turn.userId)}: ${turn.text}`)
       .join("\n\n");
 
+    const factsSection = currentUserFactsList.length > 0
+      ? `\n\nKey Facts About You:\n${currentUserFactsList.map((fact: string) => `- ${fact}`).join("\n")}`
+      : '';
+
     const fullContent = `CONVERSATION TRANSCRIPT\n\nSummary:\n${
       conversation.summary || "No summary available"
-    }\n\n${transcriptText}\n\nKey Facts:\n${Object.entries(facts)
-      .map(
-        ([speaker, speakerFacts]: [string, string[]]) =>
-          `${speaker}:\n${speakerFacts.map((fact: string) => `- ${fact}`).join("\n")}`
-      )
-      .join("\n\n")}`;
+    }\n\n${transcriptText}${factsSection}`;
 
     const blob = new Blob([fullContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -201,7 +189,7 @@ export default function CompletedView({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-6 pb-8">
       {/* Header */}
       <div className="bg-card border border-border rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
@@ -249,13 +237,11 @@ export default function CompletedView({
           <TrendingUp className="w-4 h-4" />
           {showAnalytics ? "Hide" : "Show"} Analytics
         </Button>
-        {conversationAnalytics.length > 0 && !isGeneratingSuggestions && (
+        {currentUserAnalytics.length > 0 && !isGeneratingSuggestions && currentUser && (
           <Button
             variant="outline"
             onClick={() => {
-              if (conversation.initiatorUserId) {
-                handleGenerateSuggestions(conversation.initiatorUserId);
-              }
+              handleGenerateSuggestions(currentUser._id);
             }}
             className="gap-2">
             <Sparkles className="w-4 h-4" />
@@ -264,23 +250,17 @@ export default function CompletedView({
         )}
       </div>
 
-      {/* Analytics Display */}
-      {showAnalytics && conversationAnalytics.length > 0 && (
+      {/* Analytics Display - Current User Only */}
+      {showAnalytics && currentUserAnalytics.length > 0 && (
         <div className="space-y-6">
-          {conversationAnalytics.map((analytics) => {
-            const user =
-              analytics.userId === conversation.initiatorUserId
-                ? initiatorUser
-                : scannerUser;
-            return (
-              <div key={analytics._id} className="bg-muted/30 rounded-xl p-4">
-                <SpeechAnalytics
-                  analytics={analytics}
-                  userName={user?.name || "Unknown"}
-                />
-              </div>
-            );
-          })}
+          {currentUserAnalytics.map((analytics) => (
+            <div key={analytics._id} className="bg-muted/30 rounded-xl p-4">
+              <SpeechAnalytics
+                analytics={analytics}
+                userName={currentUser?.name || "You"}
+              />
+            </div>
+          ))}
         </div>
       )}
 
@@ -323,7 +303,7 @@ export default function CompletedView({
       {/* Transcript */}
       <div className="bg-card border border-border rounded-2xl p-6 shadow-lg">
         <h3 className="text-lg font-semibold text-foreground mb-4">Transcript</h3>
-        <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
           {transcriptTurns
             .filter((turn) => !selectedUserId || turn.userId === selectedUserId)
             .map((turn, index) => {
@@ -349,27 +329,20 @@ export default function CompletedView({
         </div>
       </div>
 
-      {/* Key Facts */}
-      {Object.keys(facts).length > 0 && (
+      {/* Key Facts - Current User Only */}
+      {currentUserFactsList.length > 0 && (
         <div className="bg-card border border-border rounded-2xl p-6 shadow-lg">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Key Facts</h3>
-          <div className="grid gap-4">
-            {Object.entries(facts).map(([speaker, speakerFacts]) => (
-              <div key={speaker} className="space-y-2">
-                <h4 className="font-medium text-foreground">{speaker}</h4>
-                <ul className="space-y-2 ml-4">
-                  {speakerFacts.map((fact: string, index: number) => (
-                    <li
-                      key={index}
-                      className="text-muted-foreground text-sm flex items-start">
-                      <span className="text-primary mr-2 mt-1">•</span>
-                      <span className="flex-1">{fact}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Key Facts About You</h3>
+          <ul className="space-y-2">
+            {currentUserFactsList.map((fact: string, index: number) => (
+              <li
+                key={index}
+                className="text-muted-foreground text-sm flex items-start">
+                <span className="text-primary mr-2 mt-1">•</span>
+                <span className="flex-1">{fact}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
     </div>

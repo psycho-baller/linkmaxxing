@@ -150,3 +150,77 @@ export const migrateTranscriptTurnsToUserId = mutation({
     };
   },
 });
+
+/**
+ * Migration: Consolidate conversationFacts entries
+ * Fixes the bug where each fact was saved in a separate row instead of all facts in one row per user
+ */
+export const consolidateConversationFacts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Get all conversations
+    const allConversations = await ctx.db.query("conversations").collect();
+    
+    console.log(`Found ${allConversations.length} conversations to process`);
+    
+    let consolidated = 0;
+    let skipped = 0;
+    
+    for (const conversation of allConversations) {
+      // Get all fact entries for this conversation
+      const facts = await ctx.db
+        .query("conversationFacts")
+        .withIndex("by_conversation", (q) => q.eq("conversationId", conversation._id))
+        .collect();
+      
+      if (facts.length === 0) {
+        continue;
+      }
+      
+      // Group facts by userId
+      const factsByUser = new Map<Id<"users">, string[]>();
+      
+      for (const fact of facts) {
+        const existingFacts = factsByUser.get(fact.userId) || [];
+        // Each fact row has an array of facts (usually just one due to the bug)
+        factsByUser.set(fact.userId, [...existingFacts, ...fact.facts]);
+      }
+      
+      // Check if consolidation is needed (more than one row per user)
+      const needsConsolidation = factsByUser.size < facts.length;
+      
+      if (!needsConsolidation) {
+        skipped++;
+        continue;
+      }
+      
+      console.log(`Consolidating facts for conversation ${conversation._id}: ${facts.length} rows -> ${factsByUser.size} rows`);
+      
+      // Delete all existing fact entries for this conversation
+      for (const fact of facts) {
+        await ctx.db.delete(fact._id);
+      }
+      
+      // Insert consolidated entries (one per user with all their facts)
+      for (const [userId, userFacts] of factsByUser.entries()) {
+        if (userFacts.length > 0) {
+          await ctx.db.insert("conversationFacts", {
+            conversationId: conversation._id,
+            userId,
+            facts: userFacts,
+          });
+        }
+      }
+      
+      consolidated++;
+    }
+    
+    console.log(`Migration complete: ${consolidated} conversations consolidated, ${skipped} skipped`);
+    
+    return {
+      total: allConversations.length,
+      consolidated,
+      skipped,
+    };
+  },
+});

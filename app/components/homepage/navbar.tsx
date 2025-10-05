@@ -1,4 +1,3 @@
-"use client";
 import { UserButton } from "@clerk/react-router";
 import { Github, Menu, X } from "lucide-react";
 import React, { useCallback } from "react";
@@ -43,11 +42,11 @@ export const Navbar = ({
   }, []);
 
   // Simple computations don't need useMemo
-  const dashboardLink = !loaderData?.isSignedIn 
-    ? "/sign-up" 
+  const dashboardLink = !loaderData?.isSignedIn
+    ? "/sign-up"
     : loaderData.hasActiveSubscription ? "/dashboard" : "/pricing";
 
-  const dashboardText = !loaderData?.isSignedIn 
+  const dashboardText = !loaderData?.isSignedIn
     ? "Get Started (Demo)"
     : loaderData.hasActiveSubscription ? "Dashboard" : "Subscribe";
   return (

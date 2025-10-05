@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { useQuery } from "convex/react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { PhoneNumberDialog } from "~/components/network/PhoneNumberDialog";
 import {
   Loader2,
   ArrowLeft,
@@ -15,7 +17,8 @@ import {
   Calendar,
   MapPin,
   TrendingUp,
-  FileText
+  FileText,
+  Phone
 } from "lucide-react";
 
 function getInitials(name?: string | null, email?: string | null) {
@@ -67,12 +70,54 @@ function getStatusColor(status: string) {
 export default function ContactDetailPage() {
   const { userId } = useParams<{ userId: Id<"users"> }>();
   const navigate = useNavigate();
+  const [showPhoneDialog, setShowPhoneDialog] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+
   const contactDetails = useQuery(
     api.network.getContactDetails,
     userId ? { contactId: userId as Id<"users"> } : "skip"
   );
 
+  // Note: This will need to wait for convex dev to regenerate types
+  // @ts-ignore - VAPI types will be available after convex dev
+  const phoneNumber = useQuery(
+    api.vapi?.getPhoneNumber,
+    userId ? { userId: userId as Id<"users"> } : "skip"
+  );
+
+  // @ts-ignore - VAPI types will be available after convex dev
+  const initiateCallAction = useAction(api.vapi?.initiateCall);
+
   const isLoading = contactDetails === undefined;
+
+  const handleCallClick = () => {
+    if (phoneNumber) {
+      // Phone number exists, initiate call directly
+      handleInitiateCall();
+    } else {
+      // No phone number, show dialog
+      setShowPhoneDialog(true);
+    }
+  };
+
+  const handleInitiateCall = async (newPhoneNumber?: string) => {
+    if (!userId) return;
+
+    setIsCalling(true);
+    try {
+      const result = await initiateCallAction({
+        contactUserId: userId as Id<"users">,
+        phoneNumber: newPhoneNumber,
+      });
+
+      alert(`Call initiated successfully! Call ID: ${result.callId}`);
+    } catch (error: any) {
+      console.error("Call failed:", error);
+      alert(`Failed to initiate call: ${error.message}`);
+    } finally {
+      setIsCalling(false);
+    }
+  };
 
   if (!userId) {
     return (
@@ -134,19 +179,44 @@ export default function ContactDetailPage() {
                 {contact.email && (
                   <p className="text-sm text-muted-foreground">{contact.email}</p>
                 )}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
                   <Badge variant="secondary">
                     {stats.totalConversations} conversation{stats.totalConversations === 1 ? "" : "s"}
                   </Badge>
                   <Badge variant="outline">
                     {formatDuration(stats.totalDuration)} total time
                   </Badge>
+                  <Button
+                    onClick={handleCallClick}
+                    disabled={isCalling}
+                    size="sm"
+                    className="gap-2">
+                    {isCalling ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Calling...
+                      </>
+                    ) : (
+                      <>
+                        <Phone className="w-4 h-4" />
+                        Reflect on conversation with {contact.name?.split(' ')[0] || 'Contact'}
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Phone Number Dialog */}
+      <PhoneNumberDialog
+        open={showPhoneDialog}
+        onOpenChange={setShowPhoneDialog}
+        contactName={displayName}
+        onSubmit={handleInitiateCall}
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-auto">

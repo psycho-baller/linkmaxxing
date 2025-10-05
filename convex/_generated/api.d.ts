@@ -19,6 +19,7 @@ import type * as speechmaticsBatch from "../speechmaticsBatch.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as transcription from "../transcription.js";
 import type * as users from "../users.js";
+import type * as vapi from "../vapi.js";
 
 import type {
   ApiFromModules,
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   subscriptions: typeof subscriptions;
   transcription: typeof transcription;
   users: typeof users;
+  vapi: typeof vapi;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

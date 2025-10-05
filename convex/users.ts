@@ -90,3 +90,23 @@ export const upsertUser = mutation({
     return await ctx.db.get(userId);
   },
 });
+
+export const updatePhoneNumber = mutation({
+  args: {
+    userId: v.id("users"),
+    phoneNumber: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Validate phone number format (US/Canada: +1XXXXXXXXXX)
+    const phoneRegex = /^\+1\d{10}$/;
+    if (!phoneRegex.test(args.phoneNumber)) {
+      throw new Error("Invalid phone number format. Must be +1XXXXXXXXXX");
+    }
+
+    await ctx.db.patch(args.userId, {
+      phoneNumber: args.phoneNumber,
+    });
+
+    return { success: true };
+  },
+});

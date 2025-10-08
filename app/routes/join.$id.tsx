@@ -70,7 +70,8 @@ export default function JoinPage() {
           <SignIn
             routing="hash"
             signUpUrl={`/sign-up?redirect_url=${encodeURIComponent(`/join/${id}?code=${code}`)}`}
-            fallbackRedirectUrl={`/join/${id}?code=${code}`}
+            forceRedirectUrl={`/join/${id}?code=${code}`}
+            signUpForceRedirectUrl={`/join/${id}?code=${code}`}
           />
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
+import { api } from "./_generated/api";
 
 // Generate a random invite code
 function generateInviteCode(): string {
@@ -81,13 +82,17 @@ export const claimScanner = mutation({
       throw new Error("Not authenticated");
     }
 
-    const user = await ctx.db
+    let user = await ctx.db
       .query("users")
       .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier.split("|")[1]))
       .unique();
 
     if (!user) {
-      throw new Error("User not found");
+      // Create user if not found
+      user = await ctx.runMutation(api.users.upsertUser);
+      if (!user) {
+        throw new Error("Failed to create user");
+      }
     }
 
     const conversation = await ctx.db.get(args.conversationId);
@@ -451,7 +456,7 @@ export const importTextTranscript = action({
 
     for (const line of lines) {
       const speakerMatch = line.match(/^SPEAKER:\s*(S[12])$/i);
-      
+
       if (speakerMatch) {
         // Save previous turn if exists
         if (currentSpeaker && currentText.trim()) {

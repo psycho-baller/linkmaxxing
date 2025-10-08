@@ -331,7 +331,9 @@ export default function CurrentView({ conversationId }: CurrentViewProps) {
           console.log("Final structured transcript with speakers:", structuredTranscript);
 
           if (structuredTranscript.length === 0) {
-            throw new Error("No transcript data collected");
+            // throw new Error("No transcript data collected");
+            toast.error("No transcript data collected");
+            return;
           }
           // Now run batch transcription for more accurate final transcript
           // console.log("Starting batch transcription for final accuracy...");

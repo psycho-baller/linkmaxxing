@@ -2,9 +2,7 @@
 
 ## Inspiration
 
-The first thing that came to mind when we thought of the word "link" wasn’t technology, code, or hyperlinks — it was people. Human beings. Because when you hear "link," you instinctively think of relationships. Of connection. Of the invisible thread that pulls us toward each other.
-
-We’ve always believed that the strongest force in the world isn’t data, code, or money, it’s the connections we make with each other. As human beings, we’re wired to link, to bond, to feel seen. But the modern world makes that hard. We’re flooded with noise, trapped in surface-level talk, and robbed of real presence. LinkMaxxing was born out of a simple but urgent question: *How can we help people truly connect — not just exist near each other?*
+We’ve always believed that the strongest force in the world isn’t data, code, or money, it’s the connections we make with each other. As human beings, we’re wired to link, to bond, to feel seen. But the modern world makes that hard. We’re flooded with noise, trapped in surface-level talk, and robbed of real presence. LinkMaxxing was born out of a simple but urgent question: *How can we help people truly connect? and why do current platforms not solve that problem?*
 
 We saw the root of the problem in communication: it's not just what we say, but how we say it. From filler words to unfocused rambles, most of us don’t realize how much we get in our own way. So we set out to build a tool that gives people the power to understand and improve how they speak, with the ultimate goal to unlock deeper relationships through better conversations.
 
@@ -70,7 +68,6 @@ For every conversation you have, you can go on a phone call or chat with an AI t
 ## What we learned
 
 * transcribe conversations between people with diarization IN REALTIME!
-*
 * People crave deeper relationships more than performance metrics — but they’ll use metrics if it gets them there.
 * Small, well-timed insights are more powerful than long reports.
 * Nobody wants to be judged — they want to feel seen and supported.
@@ -95,3 +92,24 @@ Next, we’re:
 We believe LinkMaxxing can become a core part of how people grow, not just as communicators, but as humans who want to connect more deeply.
 
 Built with ❤️ using React Router v7, Convex, Clerk, Polar.sh, ZepCloud, Speechmatics, Vapi, GraphDB, VectorDB, and OpenAI
+
+## Competition
+
+There are dozens of platforms that promise communication transformation like getfluently.app (a YC-backed company), but there are several problems that are left unsolved for several audiences:
+
+* People don’t have the time to sit and talk to an AI
+* Most platforms are focused on non-native English speakers. But there’s an untapped market for:
+
+  * busy professionals:
+
+    * who need to become master communnicators to excel at their job
+    * who talk to A LOT of people everyday and would benefit from improving their communication skills
+  * people who love socializing and want to make the best of each interaction they have with someone
+*
+* A lot of these platforms are money hungry and get a lot of negative reviews saying they kept on getting billed despite cancelling their plan. They don’t allow free trials or their free version is very limited -> we can be open-source
+
+Many virtual meeting bots exist which help storing and remember everything that was shared during these meetings, but physical meetups are served only by expensive AI wearables that raise significant privacy concerns. We believe we can bring forth a privacy-first approach for remembering all your in-person interactions with 3 key features enhancing it:
+
+1. **Memory Vault that grows with you:** A secure, evolving vault that stores summaries, key facts, reflections, and relational cues from your conversations. As you engage with more people, it reveals how your relationships connect and evolve, helping you understand, manage, and strengthen them over time.
+2. **Contextual Reflection:** Lets users revisit past conversations and dig deeper: analyzing specific moments, identifying speech patterns to improve, and exploring what topics or insights could spark stronger future conversations.
+3. **Adaptive Learning:** Evolves into a personalized communication coach that grows with you — tracking your speaking patterns, learning your strengths and blind spots, and refining its feedback to guide you toward more confident, intentional, and impactful conversations

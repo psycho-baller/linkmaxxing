@@ -13,42 +13,42 @@ const features = [
   {
     icon: MessageSquare,
     title: "Real-Time Speech Analysis",
-    description: "On-device transcription powered by Whisper-tiny analyzes your conversations as they happen, tracking filler words, pacing, pauses, and sentence structure.",
+    description: "On-device transcription analyzes your conversations as they happen. Track filler words, pacing, pauses, and sentence structure.",
   },
   {
     icon: Brain,
     title: "Intelligent Feedback",
-    description: "Get personalized insights on redundancy, weak phrasing, vague language, and conciseness. See exactly how your words affect your connections.",
+    description: "Personalized insights on redundancy, weak phrasing, and vague language. See exactly how your words affect your connections.",
   },
   {
     icon: Zap,
     title: "Context-Aware Suggestions",
-    description: "Receive smart rewording suggestions and coaching tips that help you communicate with clarity and intention in the moment.",
+    description: "Smart rewording suggestions and coaching tips. Communicate with clarity and intention in the moment.",
   },
   {
     icon: Shield,
     title: "Privacy-First Architecture",
-    description: "Everything works on-device. Your conversations are processed locally and stay private—no data leaves your device unless you explicitly opt-in.",
+    description: "Everything works on-device. Your conversations stay private—no data leaves unless you opt-in.",
   },
   {
     icon: Phone,
     title: "AI Conversation Reflection",
-    description: "After each conversation, chat with an AI to reflect on what you learned about yourself and the other person, plus key topics for next time.",
+    description: "Reflect with AI after each conversation. Learn about yourself, the other person, and key topics for next time.",
   },
   {
     icon: Network,
     title: "Relationship Network Mapping",
-    description: "Visualize your connections and track conversation patterns over time. Understand who you connect with and how relationships evolve.",
+    description: "Visualize your connections and track patterns over time. See how relationships evolve.",
   },
   {
     icon: TrendingUp,
     title: "Growth Analytics",
-    description: "Track your communication improvements over weeks and months. See how your filler words decrease and your clarity increases.",
+    description: "Track improvements over time. Watch filler words decrease and clarity increase.",
   },
   {
     icon: Clock,
     title: "Speaker Diarization",
-    description: "Real-time identification of different speakers in conversations, enabling precise turn-by-turn analysis and deeper insights.",
+    description: "Real-time speaker identification. Precise turn-by-turn analysis for deeper insights.",
   },
 ];
 
@@ -61,8 +61,7 @@ export default function FeaturesSection() {
             Everything you need to connect better
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            LinkMaxxing combines cutting-edge AI with privacy-first design to help you unlock deeper, 
-            more meaningful relationships through better communication.
+            Cutting-edge AI meets privacy-first design. Unlock deeper relationships through better communication.
           </p>
         </div>
 
@@ -88,9 +87,8 @@ export default function FeaturesSection() {
 
         <div className="mt-12 md:mt-16 text-center">
           <p className="text-muted-foreground text-sm max-w-3xl mx-auto">
-            <span className="font-semibold">Coming Soon:</span> Emotional tone detection, 
-            conversation challenges, long-term memory tracking, IRL community integrations, 
-            and ambient wearable mode for screen-free reflection.
+            <span className="font-semibold">Coming Soon:</span> Emotional tone detection, conversation challenges, 
+            long-term memory tracking, community integrations, and wearable mode.
           </p>
         </div>
       </div>

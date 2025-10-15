@@ -61,13 +61,13 @@ export default function IntegrationsSection({
             </div>
             <div className="mx-auto mt-6 max-w-lg space-y-6 text-center sm:mt-0 sm:text-left">
               <h2 className="text-balance text-3xl font-semibold md:text-4xl">
-                LinkMaxxing
+                Audora
               </h2>
-              <p className="text-muted-foreground text-lg">
-                Transform how you connect. Because the strongest force in the world isn't data or code—it's the connections we make with each other.
+              <p className="text-muted-foreground text-lg font-medium">
+                Speak better. Connect deeper.
               </p>
               <p className="text-muted-foreground">
-                Your on-device speech reflection app that helps you become a more intentional, articulate, and deeply connected communicator.
+                Privacy-first, real-time speech coaching that turns your conversations into stronger relationships
               </p>
 
               <div className="flex gap-3">

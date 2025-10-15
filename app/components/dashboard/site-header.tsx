@@ -13,7 +13,7 @@ export function SiteHeader() {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+          {/* <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
               href="https://github.com/psycho-baller/mru-2025"
               rel="noopener noreferrer"
@@ -22,7 +22,7 @@ export function SiteHeader() {
             >
               GitHub
             </a>
-          </Button>
+          </Button> */}
           <ThemeToggle />
         </div>
       </div>

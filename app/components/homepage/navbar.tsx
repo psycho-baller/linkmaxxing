@@ -10,7 +10,10 @@ const menuItems = [
   { name: "Features", href: "#features" },
   { name: "How It Works", href: "#how-it-works" },
   { name: "Technologies", href: "#technologies" },
+  { name: "Manifesto", href: "/manifesto" },
 ];
+
+const isProduction = process.env.NODE_ENV === "production";
 
 export const Navbar = ({
   loaderData,
@@ -87,12 +90,22 @@ export const Navbar = ({
               <ul className="flex gap-8 text-sm">
                 {menuItems.map((item, index) => (
                   <li key={index}>
-                    <div
-                      onClick={() => handleNavClick(item.href)}
-                      className="hover:cursor-pointer text-muted-foreground block duration-150 transition-colors"
-                    >
-                      <span>{item.name}</span>
-                    </div>
+                    {item.href.startsWith("#") ? (
+                      <div
+                        onClick={() => handleNavClick(item.href)}
+                        className="hover:cursor-pointer text-muted-foreground block duration-150 transition-colors"
+                      >
+                        <span>{item.name}</span>
+                      </div>
+                    ) : (
+                      <Link
+                        to={item.href}
+                        className="hover:cursor-pointer text-muted-foreground block duration-150 transition-colors"
+                        prefetch="viewport"
+                      >
+                        <span>{item.name}</span>
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -103,26 +116,50 @@ export const Navbar = ({
                 <ul className="space-y-6 text-base">
                   {menuItems.map((item, index) => (
                     <li key={index}>
-                      <button
-                        onClick={() => handleNavClick(item.href)}
-                        className="text-muted-foreground hover:cursor-pointer  block duration-150 transition-colors w-full text-left"
-                      >
-                        <span>{item.name}</span>
-                      </button>
+                      {item.href.startsWith("#") ? (
+                        <button
+                          onClick={() => handleNavClick(item.href)}
+                          className="text-muted-foreground hover:cursor-pointer  block duration-150 transition-colors w-full text-left"
+                        >
+                          <span>{item.name}</span>
+                        </button>
+                      ) : (
+                        <Link
+                          to={item.href}
+                          onClick={() => setMenuState(false)}
+                          className="text-muted-foreground hover:cursor-pointer  block duration-150 transition-colors w-full text-left"
+                          prefetch="viewport"
+                        >
+                          <span>{item.name}</span>
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                <Link
-                  to="https://github.com/psycho-baller/mru-2025"
+                {/* <Link
+                  to="https://github.com/psycho-baller/audora"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center"
                 >
                   <Github className="w-5 h-5" />
-                </Link>
-                {loaderData?.isSignedIn ? (
+                </Link> */}
+                {isProduction ? (
+                  <>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/manifesto" prefetch="viewport">
+                        <span>Our Mission</span>
+                      </Link>
+                    </Button>
+                    <Button asChild size="sm">
+                      <Link to="/waitlist" prefetch="viewport">
+                        <span>Join Waitlist</span>
+                      </Link>
+                    </Button>
+                  </>
+                ) : loaderData?.isSignedIn ? (
                   <div className="flex items-center gap-3">
                     <Button asChild size="sm">
                       <Link to={dashboardLink} prefetch="viewport">

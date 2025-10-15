@@ -15,7 +15,7 @@ export default function FooterSection() {
 
         <div className="my-8 flex flex-wrap justify-center gap-6 text-sm">
           <Link
-            to="https://x.com/rasmickyy"
+            to="https://x.com/rami__maalouf"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="X/Twitter"

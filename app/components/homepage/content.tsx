@@ -12,11 +12,11 @@ export default function ContentSection() {
           </h2>
           <div className="space-y-6">
             <p>
-              Most people don't realize how much they get in their own way. Filler words. Rambling. Vague language. 
+              Most people don't realize how much they get in their own way. Filler words. Rambling. Vague language.
               <span className="font-bold"> It's not what you say—it's how you say it.</span>
             </p>
             <p>
-              LinkMaxxing shows you exactly how your words affect your connections. Get real-time feedback. 
+              Audora shows you exactly how your words affect your connections. Get real-time feedback.
               Improve your clarity. Build deeper relationships through better conversations.
             </p>
             <p className="text-muted-foreground text-sm">

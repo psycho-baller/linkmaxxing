@@ -4,7 +4,7 @@ const steps = [
   {
     number: "01",
     title: "Start a Conversation",
-    description: "Open LinkMaxxing and begin speaking. The app listens with your full consent, processing everything on-device for maximum privacy.",
+    description: "Open Audora and begin speaking. The app listens with your full consent, processing everything on-device for maximum privacy.",
     detail: "Whether it's a call, meeting, or casual chat—just hit record and be present.",
   },
   {
@@ -45,10 +45,10 @@ export default function HowItWorksSection() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            How LinkMaxxing Works
+            How Audora Works
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Six simple steps to transform your conversations and deepen your connections. 
+            Six simple steps to transform your conversations and deepen your connections.
             Start your journey to becoming a more intentional communicator.
           </p>
         </div>
@@ -69,7 +69,7 @@ export default function HowItWorksSection() {
                     <div className="hidden md:block w-0.5 h-24 bg-gradient-to-b from-primary/50 to-transparent mt-4" />
                   )}
                 </div>
-                
+
                 {/* Mobile Arrow */}
                 <div className="md:hidden flex items-center h-16">
                   <ArrowRight className="size-5 text-primary" />

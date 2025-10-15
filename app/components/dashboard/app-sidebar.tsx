@@ -57,7 +57,7 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <Link to="/" prefetch="viewport">
-              <span className="text-base font-semibold">LinkMaxxing</span>
+              <span className="text-base font-semibold">Audora</span>
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>

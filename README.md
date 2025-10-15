@@ -1,8 +1,8 @@
-# LinkMaxxing
+# Audora
 
 ## Inspiration
 
-We’ve always believed that the strongest force in the world isn’t data, code, or money, it’s the connections we make with each other. As human beings, we’re wired to link, to bond, to feel seen. But the modern world makes that hard. We’re flooded with noise, trapped in surface-level talk, and robbed of real presence. LinkMaxxing was born out of a simple but urgent question: *How can we help people truly connect? and why do current platforms not solve that problem?*
+We’ve always believed that the strongest force in the world isn’t data, code, or money, it’s the connections we make with each other. As human beings, we’re wired to link, to bond, to feel seen. But the modern world makes that hard. We’re flooded with noise, trapped in surface-level talk, and robbed of real presence. Audora was born out of a simple but urgent question: *How can we help people truly connect? and why do current platforms not solve that problem?*
 
 We saw the root of the problem in communication: it's not just what we say, but how we say it. From filler words to unfocused rambles, most of us don’t realize how much we get in our own way. So we set out to build a tool that gives people the power to understand and improve how they speak, with the ultimate goal to unlock deeper relationships through better conversations.
 
@@ -10,7 +10,7 @@ We saw the root of the problem in communication: it's not just what we say, but 
 
 ## What it does
 
-LinkMaxxing is an on-device speech reflection app that helps you become a more intentional, articulate, and connected communicator. It listens as you speak, with your full consent, and delivers personalized feedback on:
+Audora is an on-device speech reflection app that helps you become a more intentional, articulate, and connected communicator. It listens as you speak, with your full consent, and delivers personalized feedback on:
 
 * Filler word usage
 * Pacing and pauses
@@ -28,7 +28,7 @@ It’s like a mirror for how you talk — so you can maxx out how you link.
 
 ## How we built it
 
-We built LinkMaxxing with one guiding principle: everything should work **on-device**. That meant starting with Whisper-tiny for local transcription, pairing it with timestamp-aware NLP pipelines, and layering custom rule-based analysis and algorithms (filler detection, pacing, repetition) on top.
+We built Audora with one guiding principle: everything should work **on-device**. That meant starting with Whisper-tiny for local transcription, pairing it with timestamp-aware NLP pipelines, and layering custom rule-based analysis and algorithms (filler detection, pacing, repetition) on top.
 
 The transcription happens in realtime. So as you speak, the device analyses the conversation
 
@@ -76,7 +76,7 @@ For every conversation you have, you can go on a phone call or chat with an AI t
 
 ---
 
-## What's next for LinkMaxxing
+## What's next for Audora
 
 We're just getting started.
 
@@ -89,7 +89,7 @@ Next, we’re:
 * Exploring integrations with IRL communities (student clubs, events, teams) to help people reflect *together*, not just alone
 * Maybe designing a wearable mode for ambient conversation reflection (without screens)
 
-We believe LinkMaxxing can become a core part of how people grow, not just as communicators, but as humans who want to connect more deeply.
+We believe Audora can become a core part of how people grow, not just as communicators, but as humans who want to connect more deeply.
 
 Built with ❤️ using React Router v7, Convex, Clerk, Polar.sh, ZepCloud, Speechmatics, Vapi, GraphDB, VectorDB, and OpenAI
 
@@ -105,7 +105,7 @@ There are dozens of platforms that promise communication transformation like get
     * who need to become master communnicators to excel at their job
     * who talk to A LOT of people everyday and would benefit from improving their communication skills
   * people who love socializing and want to make the best of each interaction they have with someone
-*
+
 * A lot of these platforms are money hungry and get a lot of negative reviews saying they kept on getting billed despite cancelling their plan. They don’t allow free trials or their free version is very limited -> we can be open-source
 
 Many virtual meeting bots exist which help storing and remember everything that was shared during these meetings, but physical meetups are served only by expensive AI wearables that raise significant privacy concerns. We believe we can bring forth a privacy-first approach for remembering all your in-person interactions with 3 key features enhancing it:

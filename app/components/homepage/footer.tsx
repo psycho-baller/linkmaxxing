@@ -6,13 +6,13 @@ export default function FooterSection() {
       <div className="mx-auto max-w-5xl px-6">
         <div className="text-center mb-8">
           <Link to="/" aria-label="go home" className="mx-auto block size-fit">
-            <h3 className="text-2xl font-bold">LinkMaxxing</h3>
+            <h3 className="text-2xl font-bold">Audora</h3>
           </Link>
           <p className="text-muted-foreground text-sm mt-2">
             Transform how you connect. Because human connection is the strongest force in the world.
           </p>
         </div>
-        
+
         <div className="my-8 flex flex-wrap justify-center gap-6 text-sm">
           <Link
             to="https://x.com/rasmickyy"
@@ -35,7 +35,7 @@ export default function FooterSection() {
             </svg>
           </Link>
         </div>
-        
+
         <div className="flex flex-wrap justify-center gap-6 text-sm mb-8">
           <Link to="#features" className="text-muted-foreground hover:text-primary">
             Features
@@ -50,9 +50,9 @@ export default function FooterSection() {
             Dashboard
           </Link>
         </div>
-        
+
         <span className="text-muted-foreground block text-center text-sm">
-          © {new Date().getFullYear()} LinkMaxxing. All rights reserved. Built with ❤️ for deeper connections.
+          © {new Date().getFullYear()} Audora. All rights reserved. Built with ❤️ for deeper connections.
         </span>
       </div>
     </footer>

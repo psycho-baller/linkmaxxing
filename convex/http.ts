@@ -11,22 +11,22 @@ export const chat = httpAction(async (ctx, req) => {
 
   // Get user identity from auth
   const identity = await ctx.auth.getUserIdentity();
-  
+
   let conversationContext = "";
-  
+
   if (identity) {
     try {
       // Fetch user's conversations
       const conversations = await ctx.runQuery(api.conversations.list, {});
-      
+
       if (conversations.length > 0) {
         conversationContext = `\n\n## USER'S CONVERSATION HISTORY\nYou have access to ${conversations.length} conversation(s) from this user:\n\n`;
-        
+
         for (const conv of conversations.slice(0, 10)) { // Limit to most recent 10 conversations
           const transcript = await ctx.runQuery(api.conversations.getTranscript, {
             conversationId: conv._id
           });
-          
+
           const facts = await ctx.runQuery(api.conversations.getFacts, {
             conversationId: conv._id
           });
@@ -34,14 +34,14 @@ export const chat = httpAction(async (ctx, req) => {
           conversationContext += `### Conversation ${conv._id} (${new Date(conv._creationTime).toLocaleDateString()})\n`;
           conversationContext += `Status: ${conv.status}\n`;
           if (conv.summary) conversationContext += `Summary: ${conv.summary}\n`;
-          
+
           if (transcript.length > 0) {
             conversationContext += `Transcript:\n`;
             transcript.forEach((turn: any) => {
               conversationContext += `  - ${turn.speaker || 'Speaker'}: ${turn.text}\n`;
             });
           }
-          
+
           if (facts.length > 0) {
             conversationContext += `Key Facts:\n`;
             facts.forEach((factGroup: any) => {
@@ -58,7 +58,7 @@ export const chat = httpAction(async (ctx, req) => {
     }
   }
 
-  const systemPrompt = `You are a warm, insightful Communication Coach and Reflection Expert for LinkMaxxing. Your role is to help users become more intentional, articulate communicators and build deeper relationships.
+  const systemPrompt = `You are a warm, insightful Communication Coach and Reflection Expert for Audora. Your role is to help users become more intentional, articulate communicators and build deeper relationships.
 
 ## YOUR PERSONALITY:
 - Empathetic and supportive, like a trusted mentor

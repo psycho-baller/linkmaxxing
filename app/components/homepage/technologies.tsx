@@ -1,8 +1,8 @@
-import { 
-  Brain, 
-  Mic, 
-  Shield, 
-  Zap, 
+import {
+  Brain,
+  Mic,
+  Shield,
+  Zap,
   Database,
   Workflow,
   Code,
@@ -69,7 +69,7 @@ export default function TechnologiesSection() {
             Built with cutting-edge technology
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            LinkMaxxing leverages the latest AI and web technologies to deliver 
+            Audora leverages the latest AI and web technologies to deliver
             a powerful, privacy-first communication coaching experience.
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function TechnologiesSection() {
 
         <div className="mt-12 text-center">
           <p className="text-muted-foreground text-sm">
-            <span className="font-semibold">Privacy-First Design:</span> Most processing happens on-device. 
+            <span className="font-semibold">Privacy-First Design:</span> Most processing happens on-device.
             Cloud features are opt-in only, ensuring your conversations stay private.
           </p>
         </div>

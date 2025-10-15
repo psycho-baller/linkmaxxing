@@ -11,7 +11,7 @@ import { api } from "../../convex/_generated/api";
 import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
-  const title = "LinkMaxxing - Transform How You Connect";
+  const title = "Audora - Transform How You Connect";
   const description =
     "Your on-device speech reflection app. Become a more intentional, articulate communicator and unlock deeper relationships through better conversations.";
   const keywords = "Communication, Speech Analysis, Relationships, AI Coaching, Privacy-First, Connection, Conversation Skills";
@@ -34,7 +34,7 @@ export function meta({}: Route.MetaArgs) {
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
     { property: "og:url", content: siteUrl },
-    { property: "og:site_name", content: "LinkMaxxing" },
+    { property: "og:site_name", content: "Audora" },
     { property: "og:image", content: imageUrl },
 
     // Twitter Card

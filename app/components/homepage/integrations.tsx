@@ -13,11 +13,29 @@ import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { Navbar } from "./navbar";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export default function IntegrationsSection({
   loaderData,
 }: {
   loaderData?: { isSignedIn: boolean; hasActiveSubscription: boolean };
 }) {
+  const primaryButtonLink = isProduction
+    ? "/waitlist"
+    : loaderData?.isSignedIn
+      ? loaderData?.hasActiveSubscription
+        ? "/dashboard"
+        : "/pricing"
+      : "/sign-up";
+
+  const primaryButtonText = isProduction
+    ? "Join Waitlist"
+    : loaderData?.isSignedIn
+      ? loaderData?.hasActiveSubscription
+        ? "Go to Dashboard"
+        : "Start Connecting Better"
+      : "Start Your Journey";
+
   return (
     <section id="hero">
       <Navbar loaderData={loaderData} />
@@ -72,21 +90,8 @@ export default function IntegrationsSection({
 
               <div className="flex gap-3">
                 <Button size="sm" asChild>
-                  <Link
-                    to={
-                      loaderData?.isSignedIn
-                        ? loaderData?.hasActiveSubscription
-                          ? "/dashboard"
-                          : "/pricing"
-                        : "/sign-up"
-                    }
-                    prefetch="viewport"
-                  >
-                    {loaderData?.isSignedIn
-                      ? loaderData?.hasActiveSubscription
-                        ? "Go to Dashboard"
-                        : "Start Connecting Better"
-                      : "Start Your Journey"}
+                  <Link to={primaryButtonLink} prefetch="viewport">
+                    {primaryButtonText}
                   </Link>
                 </Button>
                 <Button variant="outline" size="sm" asChild>

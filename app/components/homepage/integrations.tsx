@@ -1,16 +1,5 @@
-import { memo } from "react";
 import { Link } from "react-router";
-import { LogoIcon } from "~/components/logo";
-import {
-  Convex,
-  Polar,
-  ReactIcon,
-  ReactRouter,
-  TailwindIcon,
-  Typescript,
-} from "~/components/logos";
 import { Button } from "~/components/ui/button";
-import { cn } from "~/lib/utils";
 import { Navbar } from "./navbar";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -37,101 +26,39 @@ export default function IntegrationsSection({
       : "Start Your Journey";
 
   return (
-    <section id="hero">
-      <Navbar loaderData={loaderData} />
-      <div className="bg-muted dark:bg-background py-24 md:py-32">
-        <div className="mx-auto max-w-5xl px-6 mt-[2rem]">
-          <div className="grid items-center sm:grid-cols-2">
-            <div className="dark:bg-muted/50 relative mx-auto w-fit">
-              <div className="bg-radial to-muted dark:to-background absolute inset-0 z-10 from-transparent to-75%"></div>
-              <div className="mx-auto mb-2 flex w-fit justify-center gap-2">
-                <IntegrationCard>
-                  <ReactRouter />
-                </IntegrationCard>
-                <IntegrationCard>
-                  <Convex />
-                </IntegrationCard>
-              </div>
-              <div className="mx-auto my-2 flex w-fit justify-center gap-2">
-                <IntegrationCard>
-                  <ReactIcon />
-                </IntegrationCard>
-                <IntegrationCard
-                  borderClassName="shadow-black-950/10 shadow-xl border-black/25 dark:border-white/25"
-                  className="dark:bg-white/10"
-                >
-                  <LogoIcon />
-                </IntegrationCard>
-                <IntegrationCard>
-                  <TailwindIcon />
-                </IntegrationCard>
-              </div>
+    <>
+    <Navbar loaderData={loaderData} />
 
-              <div className="mx-auto flex w-fit justify-center gap-2">
-                <IntegrationCard>
-                  <Typescript />
-                </IntegrationCard>
+    <section id="hero" className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+      <div className="relative z-10 text-center max-w-7xl mx-auto">
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl 2xl:text-8xl font-bold mb-4 sm:mb-6 md:mb-8">
+            Audora
+          </h1>
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold mb-6 md:mb-8">
+            <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              Speak better. Connect deeper.
+            </span>
+          </h2>
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Privacy-first, real-time speech coaching to help you master the art of communication and build stronger relationships.
+          </p>
+        </div>
 
-                <IntegrationCard>
-                  <Polar />
-                </IntegrationCard>
-              </div>
-            </div>
-            <div className="mx-auto mt-6 max-w-lg space-y-6 text-center sm:mt-0 sm:text-left">
-              <h2 className="text-balance text-3xl font-semibold md:text-4xl">
-                Audora
-              </h2>
-              <p className="text-muted-foreground text-lg font-medium">
-                Speak better. Connect deeper.
-              </p>
-              <p className="text-muted-foreground">
-                Privacy-first, real-time speech coaching that turns your conversations into stronger relationships
-              </p>
-
-              <div className="flex gap-3">
-                <Button size="sm" asChild>
-                  <Link to={primaryButtonLink} prefetch="viewport">
-                    {primaryButtonText}
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="#features">
-                    Learn More
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
+          <Button size="lg" asChild className="rounded-full px-8 py-6 text-base font-medium">
+            <Link to={primaryButtonLink} prefetch="viewport">
+              {primaryButtonText}
+            </Link>
+          </Button>
+          <Button variant="outline" size="lg" asChild className="rounded-full px-8 py-6 text-base font-medium">
+            <Link to="#features">
+              Learn More
+            </Link>
+          </Button>
         </div>
       </div>
     </section>
+    </>
   );
 }
-
-const IntegrationCard = memo(({
-  children,
-  className,
-  borderClassName,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  borderClassName?: string;
-}) => {
-  return (
-    <div
-      className={cn(
-        "bg-background relative flex size-20 rounded-xl dark:bg-transparent",
-        className
-      )}
-    >
-      <div
-        role="presentation"
-        className={cn(
-          "absolute inset-0 rounded-xl border border-black/20 dark:border-white/25",
-          borderClassName
-        )}
-      />
-      <div className="relative z-20 m-auto size-fit *:size-8">{children}</div>
-    </div>
-  );
-});

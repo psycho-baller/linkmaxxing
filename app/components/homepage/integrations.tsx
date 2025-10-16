@@ -37,7 +37,7 @@ export default function IntegrationsSection({
           </h1>
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold mb-6 md:mb-8">
             <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-              Speak better. Connect deeper.
+              Communicate better. Connect deeper.
             </span>
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">

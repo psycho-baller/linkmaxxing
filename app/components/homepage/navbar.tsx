@@ -148,11 +148,11 @@ export const Navbar = ({
                 </Link> */}
                 {isProduction ? (
                   <>
-                    <Button asChild variant="outline" size="sm">
+                    {/* <Button asChild variant="outline" size="sm">
                       <Link to="/manifesto" prefetch="viewport">
                         <span>Our Mission</span>
                       </Link>
-                    </Button>
+                    </Button> */}
                     <Button asChild size="sm">
                       <Link to="/waitlist" prefetch="viewport">
                         <span>Join Waitlist</span>
